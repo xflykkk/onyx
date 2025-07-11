@@ -91,6 +91,10 @@ def verify_documents(
     ]  # default is to treat document as relevant
 
     try:
+        logger.info(f"[LLM] fast_llm config: {fast_llm.config}")
+        logger.info(f"[LLM] timeout: {AGENT_TIMEOUT_LLM_DOCUMENT_VERIFICATION}s, connect_timeout: {AGENT_TIMEOUT_CONNECT_LLM_DOCUMENT_VERIFICATION}s, max_tokens: {AGENT_MAX_TOKENS_VALIDATION}")
+        logger.info(f"[LLM] prompt length: {len(msg[0].content)} chars")
+        
         response = run_with_timeout(
             AGENT_TIMEOUT_LLM_DOCUMENT_VERIFICATION,
             fast_llm.invoke,
@@ -100,6 +104,8 @@ def verify_documents(
         )
 
         assert isinstance(response.content, str)
+        logger.info(f"[LLM] response: {response.content}")
+        
         if not binary_string_test(
             text=response.content, positive_value=AGENT_POSITIVE_VALUE_STR
         ):
@@ -108,7 +114,7 @@ def verify_documents(
     except (LLMTimeoutError, TimeoutError):
         # In this case, we decide to continue and don't raise an error, as
         # little harm in letting some docs through that are less relevant.
-        logger.error("LLM Timeout Error - verify documents")
+        logger.error(f"[LLM] Timeout Error - verify documents (after {AGENT_TIMEOUT_LLM_DOCUMENT_VERIFICATION}s)")
 
     except LLMRateLimitError:
         # In this case, we decide to continue and don't raise an error, as

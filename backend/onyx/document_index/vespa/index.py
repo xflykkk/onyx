@@ -952,10 +952,10 @@ class VespaIndex(DocumentIndex):
         yql = (
             YQL_BASE.format(index_name=self.index_name)
             + vespa_where_clauses
-            + f"(({{targetHits: {target_hits}}}nearestNeighbor(embeddings, query_embedding)) "
+            + f"({{targetHits: {target_hits}}}nearestNeighbor(embeddings, query_embedding)) "
             + f"or ({{targetHits: {target_hits}}}nearestNeighbor(title_embedding, query_embedding)) "
             + 'or ({grammar: "weakAnd"}userInput(@query)) '
-            + f'or ({{defaultIndex: "{CONTENT_SUMMARY}"}}userInput(@query)))'
+            + f'or ({{defaultIndex: "{CONTENT_SUMMARY}"}}userInput(@query))'
         )
 
         final_query = " ".join(final_keywords) if final_keywords else query

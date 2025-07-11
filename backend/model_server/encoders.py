@@ -269,7 +269,17 @@ class CloudEmbedding:
         )
         response.raise_for_status()
         result = response.json()
-        return [embedding["embedding"] for embedding in result["data"]]
+        
+        # Fix: Handle potential nested array format from certain models
+        embeddings = []
+        for embedding_data in result["data"]:
+            embedding = embedding_data["embedding"]
+            # If embedding is nested array, flatten it
+            if isinstance(embedding, list) and len(embedding) > 0 and isinstance(embedding[0], list):
+                embedding = embedding[0]
+            embeddings.append(embedding)
+        
+        return embeddings
 
     @retry(tries=_RETRY_TRIES, delay=_RETRY_DELAY)
     async def embed(

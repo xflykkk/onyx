@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SSE 修复测试</title>
+  <style>
+    body { 
+      font-family: monospace; 
+      padding: 20px; 
+      background: #1a1a1a; 
+      color: #00ff00; 
+    }
+    .test-area { 
+      background: #2a2a2a; 
+      padding: 15px; 
+      margin: 10px 0; 
+      border-radius: 5px; 
+      border: 1px solid #444; 
+    }
+    button { 
+      background: #4CAF50; 
+      color: white; 
+      padding: 10px 20px; 
+      border: none; 
+      border-radius: 5px; 
+      cursor: pointer; 
+      margin: 5px; 
+    }
+    button:hover { background: #45a049; }
+    .output { 
+      white-space: pre-wrap; 
+      max-height: 300px; 
+      overflow-y: auto; 
+      background: #000; 
+      padding: 10px; 
+      border-radius: 3px; 
+    }
+  </style>
+</head>
+<body>
+  <h1>🔧 SSE 解析器修复测试</h1>
+  
+  <div class="test-area">
+    <h3>📋 测试场景：</h3>
+    <p>1. 标准SSE格式 (data: 前缀)</p>
+    <p>2. 直接JSON格式 (Onyx后端实际格式)</p>
+    <p>3. 混合格式</p>
+    <button onclick="runTests()">▶️ 运行测试</button>
+    <button onclick="clearOutput()">🗑️ 清空输出</button>
+  </div>
+
+  <div class="test-area">
+    <h3>📊 测试结果：</h3>
+    <div id="output" class="output"></div>
+  </div>
+
+  <script>
+    // 模拟修复后的SSE解析器
+    class SSEParserTest {
+      constructor() {
+        this.buffer = '';
+      }
+      
+      parseChunk(chunk) {
+        this.buffer += chunk;
+        const lines = this.buffer.split('\n');
+        
+        // Keep the last (potentially incomplete) line in the buffer
+        this.buffer = lines.pop() || '';
+        
+        const events = [];
+        
+        for (const line of lines) {
+          const trimmedLine = line.trim();
+          
+          // Skip empty lines
+          if (!trimmedLine) {
+            continue;
+          }
+          
+          // Handle standard SSE format with "data: " prefix
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6); // Remove 'data: ' prefix
+            if (data.trim() && data !== '[DONE]') {
+              events.push(data);
+            }
+          }
+          // Handle direct JSON format (what Onyx backend actually sends)
+          else if (trimmedLine.startsWith('{') && trimmedLine.endsWith('}')) {
+            try {
+              // Validate it's proper JSON by attempting to parse
+              JSON.parse(trimmedLine);
+              events.push(trimmedLine);
+            } catch (error) {
+              console.warn('Failed to parse JSON line:', trimmedLine, error);
+            }
+          }
+          // Handle other SSE event types if needed
+          else if (line.startsWith('event: ') || line.startsWith('id: ') || line.startsWith('retry: ')) {
+            // These are SSE metadata lines, skip them for now
+            continue;
+          }
+          else {
+            // Log unexpected formats for debugging
+            console.warn('Unexpected SSE line format:', line);
+          }
+        }
+        
+        return events;
+      }
+      
+      reset() {
+        this.buffer = '';
+      }
+    }
+
+    function log(message) {
+      const output = document.getElementById('output');
+      output.textContent += new Date().toLocaleTimeString() + ' - ' + message + '\n';
+      output.scrollTop = output.scrollHeight;
+    }
+
+    function clearOutput() {
+      document.getElementById('output').textContent = '';
+    }
+
+    function runTests() {
+      clearOutput();
+      log('🚀 开始SSE解析器测试...\n');
+
+      const parser = new SSEParserTest();
+
+      // 测试1: 标准SSE格式
+      log('📝 测试1: 标准SSE格式');
+      const sseData = 'data: {"answer_piece": "Hello"}\ndata: {"answer_piece": " world"}\n\n';
+      const sseResults = parser.parseChunk(sseData);
+      log(`   输入: ${JSON.stringify(sseData)}`);
+      log(`   解析结果: ${JSON.stringify(sseResults)}`);
+      log(`   ✅ 期望: 2个事件, 实际: ${sseResults.length}个事件\n`);
+
+      parser.reset();
+
+      // 测试2: 直接JSON格式 (Onyx后端格式)
+      log('📝 测试2: 直接JSON格式 (Onyx后端实际格式)');
+      const jsonData = '{"answer_piece": "Hello"}\n{"answer_piece": " world"}\n{"message_id": 123}\n';
+      const jsonResults = parser.parseChunk(jsonData);
+      log(`   输入: ${JSON.stringify(jsonData)}`);
+      log(`   解析结果: ${JSON.stringify(jsonResults)}`);
+      log(`   ✅ 期望: 3个事件, 实际: ${jsonResults.length}个事件\n`);
+
+      parser.reset();
+
+      // 测试3: 混合格式
+      log('📝 测试3: 混合格式');
+      const mixedData = 'data: {"answer_piece": "SSE "}\n{"answer_piece": "JSON "}\nevent: test\ndata: {"answer_piece": "mixed"}\n';
+      const mixedResults = parser.parseChunk(mixedData);
+      log(`   输入: ${JSON.stringify(mixedData)}`);
+      log(`   解析结果: ${JSON.stringify(mixedResults)}`);
+      log(`   ✅ 期望: 3个事件, 实际: ${mixedResults.length}个事件\n`);
+
+      parser.reset();
+
+      // 测试4: 分块接收 (模拟网络流)
+      log('📝 测试4: 分块接收模拟');
+      const chunk1 = '{"answer_piece": "Hel';
+      const chunk2 = 'lo"}\n{"answer_piece": " wor';
+      const chunk3 = 'ld"}\n';
+      
+      const result1 = parser.parseChunk(chunk1);
+      const result2 = parser.parseChunk(chunk2);
+      const result3 = parser.parseChunk(chunk3);
+      
+      log(`   分块1: ${JSON.stringify(chunk1)} -> ${result1.length}个事件`);
+      log(`   分块2: ${JSON.stringify(chunk2)} -> ${result2.length}个事件`);
+      log(`   分块3: ${JSON.stringify(chunk3)} -> ${result3.length}个事件`);
+      log(`   ✅ 总事件数: ${result1.length + result2.length + result3.length}\n`);
+
+      // 测试5: 错误处理
+      log('📝 测试5: 错误处理');
+      const invalidData = '{"invalid": json}\n{"answer_piece": "valid"}\n';
+      const errorResults = parser.parseChunk(invalidData);
+      log(`   输入: ${JSON.stringify(invalidData)}`);
+      log(`   解析结果: ${JSON.stringify(errorResults)}`);
+      log(`   ✅ 期望: 1个有效事件, 实际: ${errorResults.length}个事件\n`);
+
+      log('🎉 测试完成! 如果所有测试都显示正确的事件数量，说明SSE解析器修复成功！');
+    }
+  </script>
+</body>
+</html> 

@@ -467,7 +467,7 @@ Queries:
 
 
 DOCUMENT_VERIFICATION_PROMPT = f"""
-Determine whether the following document text contains data or information that is potentially relevant \
+/no_think.Determine whether the following document text contains data or information that is potentially relevant \
 for a question. It does not have to be fully relevant, but check whether it has some information that \
 would help - possibly in conjunction with other documents - to address the question.
 
@@ -498,7 +498,7 @@ Answer:
 
 # Sub-Question Answer Generation
 SUB_QUESTION_RAG_PROMPT = f"""
-Use the context provided below - and only the provided context - to answer the given question. \
+/no_think.Use the context provided below - and only the provided context - to answer the given question. \
 (Note that the answer is in service of answering a broader question, given below as 'motivation').
 
 Make sure that you keep all relevant information, specifically as it concerns the ultimate goal. \
@@ -513,6 +513,7 @@ that B, C, D, E, etc. are competitors of A! All you know is that these are produ
 would have to rely on another question - that you do not have access to - to learn which companies are competitors of A.
 Correspondingly, you should not say that these are the products of competitors of A, but rather something like \
 "Here are some products of various companies".
+
 
 It is critical that you provide inline citations in the format [D1], [D2], [D3], etc! Please use format [D1][D2] and NOT \
 [D1, D2] format if you cite two or more documents together! \

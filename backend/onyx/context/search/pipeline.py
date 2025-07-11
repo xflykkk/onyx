@@ -116,7 +116,10 @@ class SearchPipeline:
         final_search_query = retrieval_preprocessing(
             search_request=self.search_request,
             user=self.user,
-            llm=self.llm,
+            # TODO: Modified to use fast_llm instead of llm for filter extraction tasks
+            # This improves performance for simple JSON extraction prompts (time_filter, source_filter)
+            # Original: llm=self.llm,
+            llm=self.fast_llm,
             skip_query_analysis=self.skip_query_analysis,
             db_session=self.db_session,
             bypass_acl=self.bypass_acl,

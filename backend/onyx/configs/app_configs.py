@@ -533,8 +533,8 @@ ENABLE_MULTIPASS_INDEXING = (
 # Enable contextual retrieval
 ENABLE_CONTEXTUAL_RAG = os.environ.get("ENABLE_CONTEXTUAL_RAG", "").lower() == "true"
 
-DEFAULT_CONTEXTUAL_RAG_LLM_NAME = "gpt-4o-mini"
-DEFAULT_CONTEXTUAL_RAG_LLM_PROVIDER = "DevEnvPresetOpenAI"
+DEFAULT_CONTEXTUAL_RAG_LLM_NAME = "openai/qwen3-0-6b"
+DEFAULT_CONTEXTUAL_RAG_LLM_PROVIDER = "openai"
 # Finer grained chunking for more detail retention
 # Slightly larger since the sentence aware split is a max cutoff so most minichunks will be under MINI_CHUNK_SIZE
 # tokens. But we need it to be at least as big as 1/4th chunk size to avoid having a tiny mini-chunk at the end
@@ -777,12 +777,12 @@ S3_FILE_STORE_BUCKET_NAME = (
 )
 S3_FILE_STORE_PREFIX = os.environ.get("S3_FILE_STORE_PREFIX") or "onyx-files"
 # S3_ENDPOINT_URL is for MinIO and other S3-compatible storage. Leave blank for AWS S3.
-S3_ENDPOINT_URL = os.environ.get("S3_ENDPOINT_URL")
-S3_VERIFY_SSL = os.environ.get("S3_VERIFY_SSL", "").lower() == "true"
+S3_ENDPOINT_URL = os.environ.get("S3_ENDPOINT_URL") or "http://localhost:9004"
+S3_VERIFY_SSL = os.environ.get("S3_VERIFY_SSL", "").lower() == "false"
 
 # S3/MinIO Access Keys
-S3_AWS_ACCESS_KEY_ID = os.environ.get("S3_AWS_ACCESS_KEY_ID")
-S3_AWS_SECRET_ACCESS_KEY = os.environ.get("S3_AWS_SECRET_ACCESS_KEY")
+S3_AWS_ACCESS_KEY_ID = os.environ.get("S3_AWS_ACCESS_KEY_ID") or "minioadmin"
+S3_AWS_SECRET_ACCESS_KEY = os.environ.get("S3_AWS_SECRET_ACCESS_KEY") or "minioadmin"
 
 # Forcing Vespa Language
 # English: en, German:de, etc. See: https://docs.vespa.ai/en/linguistics.html

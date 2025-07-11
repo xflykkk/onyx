@@ -36,6 +36,15 @@ def test_embedding_configuration(
     _: User | None = Depends(current_admin_user),
 ) -> None:
     try:
+        # 🔍 Debug: Print API key information
+        logger.info(f"🔍 [DEBUG] Test Embedding Request - API Key Information:")
+        logger.info(f"🔍 [DEBUG]   - API Key: {test_llm_request.api_key}")
+        logger.info(f"🔍 [DEBUG]   - API Key Length: {len(test_llm_request.api_key) if test_llm_request.api_key else 0}")
+        logger.info(f"🔍 [DEBUG]   - API Key Type: {type(test_llm_request.api_key)}")
+        logger.info(f"🔍 [DEBUG]   - Provider Type: {test_llm_request.provider_type}")
+        logger.info(f"🔍 [DEBUG]   - Model Name: {test_llm_request.model_name}")
+        logger.info(f"🔍 [DEBUG]   - API URL: {test_llm_request.api_url}")
+        
         test_model = EmbeddingModel(
             server_host=MODEL_SERVER_HOST,
             server_port=MODEL_SERVER_PORT,
@@ -57,8 +66,8 @@ def test_embedding_configuration(
         raise ValueError(error_msg)
 
     except Exception as e:
-        error_msg = "An error occurred while testing your embedding model. Please check your configuration."
-        logger.error(f"{error_msg} Error message: {e}", exc_info=True)
+        error_msg = f"An error occurred while testing embedding model '{test_llm_request.model_name}'. Error: {str(e)}"
+        logger.error(f"{error_msg}", exc_info=True)
         raise HTTPException(status_code=400, detail=error_msg)
 
 

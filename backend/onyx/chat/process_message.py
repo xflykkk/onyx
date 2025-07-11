@@ -1,3 +1,4 @@
+import re
 import time
 import traceback
 from collections import defaultdict
@@ -15,6 +16,7 @@ from onyx.chat.answer import Answer
 from onyx.chat.chat_utils import create_chat_chain
 from onyx.chat.chat_utils import create_temporary_persona
 from onyx.chat.chat_utils import process_kg_commands
+from onyx.chat.models import AgentAnswerPiece
 from onyx.chat.models import AgenticMessageResponseIDInfo
 from onyx.chat.models import AgentMessageIDInfo
 from onyx.chat.models import AgentSearchPacket
@@ -1250,6 +1252,12 @@ def stream_chat_message(
             is_connected=is_connected,
         )
         for obj in objects:
+            # Clean think tags from answer pieces
+            if isinstance(obj, OnyxAnswerPiece) and obj.answer_piece:
+                obj.answer_piece = re.sub(r'<think>.*?</think>', '', obj.answer_piece, flags=re.DOTALL)
+            elif isinstance(obj, AgentAnswerPiece) and obj.answer_piece:
+                obj.answer_piece = re.sub(r'<think>.*?</think>', '', obj.answer_piece, flags=re.DOTALL)
+            
             # Check if this is a QADocsResponse with document results
             if isinstance(obj, QADocsResponse):
                 document_retrieval_latency = time.time() - start_time

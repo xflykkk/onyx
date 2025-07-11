@@ -6,7 +6,7 @@ from onyx.prompts.constants import SOURCES_KEY
 
 # Smaller followup prompts in time_filter.py
 TIME_FILTER_PROMPT = """
-You are a tool to identify time filters to apply to a user query for a downstream search \
+/no_think.You are a tool to identify time filters to apply to a user query for a downstream search \
 application. The downstream application is able to use a recency bias or apply a hard cutoff to \
 remove all documents before the cutoff. Identify the correct filters to apply for the user query.
 
@@ -30,7 +30,7 @@ The valid values for "date" is a date in format MM/DD/YYYY, ALWAYS follow this f
 # This is generally not a big issue though as if the company has confluence, hopefully they add
 # a connector for it or the user is aware that confluence has not been added.
 SOURCE_FILTER_PROMPT = f"""
-Given a user query, extract relevant source filters for use in a downstream search tool.
+/no_think.Given a user query, extract relevant source filters for use in a downstream search tool.
 Respond with a json containing the source filters or null if no specific sources are referenced.
 ONLY extract sources when the user is explicitly limiting the scope of where information is \
 coming from.
