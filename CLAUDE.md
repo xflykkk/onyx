@@ -264,3 +264,137 @@ Key environment variables:
    - Backend: pytest-based tests in `backend/tests/`
    - Frontend: Jest tests with `npm test`
    - Integration tests available for full system testing
+
+### 已禁用的任务备忘
+- `check_for_external_group_sync` 和 `check_for_doc_permissions_sync` 任务已在 beat_schedule.py 中注释禁用。
+- 这两个任务分别负责外部用户组权限同步和文档级权限同步，如需重新启用权限控制功能需要取消注释。
+
+### 调试工具和配置
+- **流式日志监控**: 设置环境变量 `ENABLE_STREAM_LOGGING=true` 启用 SSE 流式响应的详细日志记录
+- **日志位置**: 默认存储在 `/tmp/onyx_stream_logs/`，可通过 `STREAM_LOG_DIR` 环境变量自定义
+- **监控工具**: 
+  - `python backend/scripts/start_stream_monitoring.py` - 实时监控新的流式日志
+  - `python backend/scripts/view_stream_logs.py --latest` - 查看最新的流式日志详情
+  - `python backend/scripts/view_stream_logs.py --help` - 查看详细使用说明
+- **用途**: 用于调试子问题引用、文档搜索、流式响应等 SSE 相关问题
+
+
+完整调用链路图
+
+  Frontend (onyx-chat-standalone)
+  ├── useChat.sendMessage() [src/hooks/useChat.ts:178]
+  ├── apiClient.sendMessage() [src/lib/api.ts:272]
+  │
+  HTTP POST /chat/send-message
+  │
+  Backend (FastAPI)
+  ├── handle_new_chat_message() [chat_backend.py:403]
+  ├── stream_chat_message() [process_message.py:1240]
+  ├── stream_chat_message_objects() [process_message.py:528]
+  │   ├── get_chat_session_by_id()
+  │   ├── get_llms_for_persona() [factory.py:42]
+  │   └── Answer() [answer.py:47]
+  │       └── processed_streamed_output
+  │           ├── run_agent_search_graph() [智能搜索模式]
+  │           ├── run_basic_graph() [基础模式]  
+  │           ├── run_kb_graph() [知识图谱模式]
+  │           └── run_dc_graph() [分治模式]
+  │
+  LLM Layer
+  ├── DefaultMultiLLM [chat_llm.py:270]
+  ├── _stream_implementation() [chat_llm.py:526]
+  ├── litellm.completion() [chat_llm.py:416]
+  │   ├── OpenAI API
+  │   ├── Anthropic API
+  │   ├── Local Models
+  │   └── Other Providers
+  │
+  Response Stream (SSE)
+  ├── JSON packets (OnyxAnswerPiece, AgentAnswerPiece, etc.)
+  ├── Document search results
+  ├── Citations
+  └── Final message details
+
+  关键执行类详解
+
+  1. CreateChatMessageRequest: 请求参数模型
+  2. Answer: 核心协调器，管理整个对话流程
+  3. DefaultMultiLLM: LLM 抽象层，统一各种 LLM 调用
+  4. StreamingProcessor (前端): 处理流式响应解析
+  5. GraphConfig: 配置不同的执行图策略
+
+  分支链路
+
+  - 智能搜索模式: 使用 agent 搜索图进行多轮搜索和推理
+  - 基础模式: 直接 LLM 对话
+  - 知识图谱模式: 结合 KG 的增强对话
+  - 文件上传处理: 通过 /chat/file 端点上传并索引文件
+
+
+
+  智能搜索模式 [run_agent_search_graph]
+  │
+  ├── 📋 prepare_tool_input [准备工具输入]
+  │   └── 处理用户查询，准备工具调用参数
+  │
+  ├── 🔧 choose_tool [选择工具]
+  │   └── 决定使用哪个工具或是否进入智能搜索
+  │
+  ├── 🌟 route_initial_tool_choice [路由决策] 
+  │   ├── Branch A: call_tool → basic_use_tool_response → logging_node [常规工具调用]
+  │   ├── Branch B: start_agent_search [进入智能搜索主流程] ⭐
+  │   └── Branch C: logging_node [直接结束]
+  │
+  ├── 🚀 start_agent_search [启动智能搜索]
+  │   ├── 并行执行：
+  │   │   ├── generate_initial_answer_subgraph [生成初始答案子图] 📊
+  │   │   └── extract_entity_term [提取实体和术语] 🏷️
+  │   │
+  │   └── ⬇️ 等待两个并行任务完成
+  │
+  ├── 🔍 generate_initial_answer_subgraph [初始答案生成子图]
+  │   ├── 并行执行：
+  │   │   ├── retrieve_orig_question_docs_subgraph [检索原问题文档]
+  │   │   └── generate_sub_answers_subgraph [生成子答案子图]
+  │   │       ├── decompose_orig_question [分解原问题] 🧩
+  │   │       │   └── 使用 fast_llm 将原问题分解为子问题
+  │   │       ├── answer_sub_question_subgraphs [并行回答子问题] 🔀
+  │   │       │   ├── 为每个子问题并行执行搜索
+  │   │       │   ├── 调用搜索工具获取相关文档
+  │   │       │   └── 使用主 LLM 生成子答案
+  │   │       └── format_initial_sub_answers [格式化初始子答案] 📝
+  │   │
+  │   ├── generate_initial_answer [生成初始答案] ✨
+  │   │   └── 基于检索文档和子答案生成综合初始答案
+  │   └── validate_initial_answer [验证初始答案] ✅
+  │
+  ├── 🤔 decide_refinement_need [决定是否需要精炼]
+  │   └── continue_to_refined_answer_or_end [路由决策]
+  │       ├── Branch 1: create_refined_sub_questions [需要精炼] 🔄
+  │       └── Branch 2: logging_node [不需要精炼，直接结束] 🏁
+  │
+  ├── 📝 create_refined_sub_questions [创建精炼子问题]
+  │   ├── 基于初始答案和提取的实体/术语
+  │   ├── 生成更具体、更深入的子问题
+  │   └── parallelize_refined_sub_question_answering [并行化精炼子问题回答]
+  │
+  ├── 🔀 answer_refined_question_subgraphs [回答精炼子问题子图]
+  │   ├── 为每个精炼子问题并行执行
+  │   ├── 更深入的搜索和分析
+  │   └── 生成高质量的子答案
+  │
+  ├── 📥 ingest_refined_sub_answers [消化精炼子答案]
+  │   └── 收集和整理所有精炼子答案
+  │
+  ├── ⚡ generate_validate_refined_answer [生成并验证精炼答案]
+  │   └── 基于精炼子答案生成最终答案
+  │
+  ├── ⚖️ compare_answers [比较答案]
+  │   ├── 比较初始答案和精炼答案
+  │   ├── 决定使用哪个答案
+  │   └── 评估精炼是否有改进
+  │
+  └── 📊 logging_node [日志记录] → END
+      ├── 记录所有结果和统计信息
+      ├── 持久化答案、子问题和子答案
+      └── 完成整个智能搜索流程

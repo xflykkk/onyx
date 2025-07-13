@@ -522,7 +522,7 @@ const FileList: React.FC<FileListProps> = ({
         <div className="flex space-x-2">
           <label 
             className={cn(
-              'flex items-center space-x-2 px-3 py-2 rounded-lg transition-all text-sm font-medium',
+              'flex flex-col items-center space-y-1 px-3 py-2 rounded-lg transition-all font-medium',
               selectedFolderId && !isLoading && !isUploading
                 ? 'cursor-pointer' +
                   (variant === 'glassmorphism'
@@ -535,8 +535,8 @@ const FileList: React.FC<FileListProps> = ({
             )}
             title={!selectedFolderId ? '请先选择一个文件夹' : '上传文件'}
           >
-            <Upload className="w-4 h-4" />
-            <span className="hidden sm:inline">
+            <Upload className="w-6 h-6" />
+            <span className="text-xs hidden sm:inline">
               {!selectedFolderId ? '选择文件夹' : '上传'}
             </span>
             <input

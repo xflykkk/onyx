@@ -16,15 +16,17 @@ import {
   Shield,
   Globe,
   File as FileIcon,
+  ExternalLink,
 } from 'lucide-react';
 import ChatInterface from '@/components/ChatInterface';
 import FileLibrary from '@/components/FileLibrary';
+import LLMProviderManager from '@/components/LLMProviderManager';
 import { useChat } from '@/hooks/useChat';
 import { useUserDocuments } from '@/hooks/useUserDocuments';
 import { cn } from '@/lib/utils';
 import { APP_CONFIG } from '@/lib/config';
 
-type ViewMode = 'chat' | 'files' | 'both';
+type ViewMode = 'chat' | 'files' | 'both' | 'llm';
 type DesignVariant = 'glassmorphism' | 'neumorphic';
 
 export default function ChatPage() {
@@ -207,6 +209,7 @@ export default function ChatPage() {
                 { mode: 'files' as ViewMode, icon: Sparkles, label: 'Files' },
                 { mode: 'chat' as ViewMode, icon: MessageSquare, label: 'Chat' },
                 { mode: 'both' as ViewMode, icon: Sparkles, label: 'Both' },
+                { mode: 'llm' as ViewMode, icon: Settings, label: 'Models' },
               ].map(({ mode, icon: Icon, label }) => (
                 <motion.button
                   key={mode}
@@ -228,6 +231,24 @@ export default function ChatPage() {
                   <span className="hidden sm:inline">{label}</span>
                 </motion.button>
               ))}
+              
+              {/* Workers Link */}
+              <motion.a
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                href="http://172.16.3.94:5001/workers"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn(
+                  'flex items-center space-x-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all',
+                  designVariant === 'glassmorphism'
+                    ? 'text-glass hover:glass-light'
+                    : 'text-gray-600 hover:neuro-flat'
+                )}
+              >
+                <ExternalLink className="w-4 h-4" />
+                <span className="hidden sm:inline">Workers</span>
+              </motion.a>
             </div>
 
             {/* Theme Toggle */}
@@ -376,6 +397,21 @@ export default function ChatPage() {
                   </div>
                 </motion.div>
               )}
+            </motion.section>
+          )}
+        </AnimatePresence>
+
+        {/* LLM Management Section */}
+        <AnimatePresence mode="wait">
+          {viewMode === 'llm' && (
+            <motion.section
+              key="llm"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              className="col-span-full"
+            >
+              <LLMProviderManager variant={designVariant} />
             </motion.section>
           )}
         </AnimatePresence>

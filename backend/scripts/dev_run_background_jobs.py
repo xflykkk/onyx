@@ -1,6 +1,6 @@
 import subprocess
 import threading
-
+import time
 
 def monitor_process(process_name: str, process: subprocess.Popen) -> None:
     assert process.stdout is not None
@@ -13,6 +13,20 @@ def monitor_process(process_name: str, process: subprocess.Popen) -> None:
 
         if process.poll() is not None:
             break
+
+
+def start_flower_delayed(cmd_flower, delay_seconds=40):
+    """Start Flower after a delay"""
+    print(f"等待 {delay_seconds} 秒后启动 Flower...")
+    time.sleep(delay_seconds)
+    
+    flower_process = subprocess.Popen(
+        cmd_flower, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True
+    )
+    print("🌸 Flower 已启动，访问 http://localhost:5001")
+    
+    # Monitor the process
+    monitor_process("FLOWER", flower_process)
 
 
 def run_jobs() -> None:
@@ -95,8 +109,9 @@ def run_jobs() -> None:
         "--prefetch-multiplier=1",
         "--loglevel=INFO",
         "--hostname=monitoring@%n",
-        "--queues=monitoring",
+        "--queues=monitoring"
     ]
+
 
     cmd_worker_kg_processing = [
         "celery",
@@ -117,6 +132,15 @@ def run_jobs() -> None:
         "onyx.background.celery.versioned_apps.beat",
         "beat",
         "--loglevel=INFO",
+    ]
+
+    cmd_flower = [
+        "celery",
+        "--broker=redis://localhost:6379/15",
+        "-A", "onyx.background.celery.versioned_apps.primary",
+        "flower",
+        "--address=0.0.0.0",
+        "--port=5001"
     ]
 
     # spawn processes
@@ -149,6 +173,8 @@ def run_jobs() -> None:
         stderr=subprocess.STDOUT,
         text=True,
     )
+
+    
 
     worker_kg_processing_process = subprocess.Popen(
         cmd_worker_kg_processing,
@@ -185,6 +211,7 @@ def run_jobs() -> None:
         target=monitor_process, args=("KG_PROCESSING", worker_kg_processing_process)
     )
     beat_thread = threading.Thread(target=monitor_process, args=("BEAT", beat_process))
+    flower_thread = threading.Thread(target=start_flower_delayed, args=(cmd_flower, 40))
 
     worker_primary_thread.start()
     worker_light_thread.start()
@@ -194,6 +221,8 @@ def run_jobs() -> None:
     worker_monitoring_thread.start()
     worker_kg_processing_thread.start()
     beat_thread.start()
+    flower_thread.start()
+    
 
     worker_primary_thread.join()
     worker_light_thread.join()
@@ -203,7 +232,12 @@ def run_jobs() -> None:
     worker_monitoring_thread.join()
     worker_kg_processing_thread.join()
     beat_thread.join()
+    flower_thread.join()
+    
 
 
 if __name__ == "__main__":
     run_jobs()
+
+
+   

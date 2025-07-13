@@ -61,7 +61,7 @@ GEN_AI_MODEL_VERSION = os.environ.get("GEN_AI_MODEL_VERSION")
 FAST_GEN_AI_MODEL_VERSION = os.environ.get("FAST_GEN_AI_MODEL_VERSION")
 
 # Override the auto-detection of LLM max context length
-GEN_AI_MAX_TOKENS = int(os.environ.get("GEN_AI_MAX_TOKENS") or 0) or None
+GEN_AI_MAX_TOKENS = int(os.environ.get("GEN_AI_MAX_TOKENS") or 8192) or None
 
 # Set this to be enough for an answer + quotes. Also used for Chat
 # This is the minimum token context we will leave for the LLM to generate an answer
@@ -132,6 +132,11 @@ if _LITELLM_EXTRA_BODY_RAW:
         LITELLM_EXTRA_BODY = json.loads(_LITELLM_EXTRA_BODY_RAW)
     except Exception:
         pass
+
+# OPIK monitoring configuration
+OPIK_URL_OVERRIDE = os.environ.get("OPIK_URL_OVERRIDE", "http://172.16.0.120:5173/api")
+OPIK_PROJECT_NAME = os.environ.get("OPIK_PROJECT_NAME", "deepinsightQA")
+ENABLE_OPIK_MONITORING = os.environ.get("ENABLE_OPIK_MONITORING", "true").lower() == "true"
 
 # Whether and how to lower scores for short chunks w/o relevant context
 # Evaluated via custom ML model

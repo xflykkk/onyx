@@ -17,11 +17,13 @@ import {
   Plus,
   Folder,
 } from 'lucide-react';
-import { ChatMessage, SearchProgress, UploadedFile } from '@/types';
+import { ChatMessage, SearchProgress, UploadedFile, OnyxDocument, SubQuestionDetail, Citation } from '@/types';
 import { cn } from '@/lib/utils';
 import { CHAT_CONFIG } from '@/lib/config';
+import { openDocument } from '@/lib/documentUtils';
 import MessageBubble from './MessageBubble';
 import EnhancedSearchProgress from './EnhancedSearchProgress';
+import { useSmartScroll } from '@/hooks/useSmartScroll';
 
 interface ChatInterfaceProps {
   messages: ChatMessage[];
@@ -61,17 +63,40 @@ export default function ChatInterface({
   const [inputMessage, setInputMessage] = useState('');
   const [selectedFileIds, setSelectedFileIds] = useState<number[]>([]);
   const [isComposing, setIsComposing] = useState(false);
+  const [presentingDocument, setPresentingDocument] = useState<OnyxDocument | null>(null);
+  const [selectedSubQuestion, setSelectedSubQuestion] = useState<SubQuestionDetail | null>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+  
+  // 牁定聊天状态以供智能滚动使用
+  const chatState = isLoading ? 'streaming' : 'idle';
 
-  // Auto-scroll to bottom when new messages arrive
+  // 使用智能滚动 hook替代原有的简单滚动逻辑
+  const { scrollToBottom, resetUserScrollState, userHasScrolled } = useSmartScroll({
+    chatState: chatState as 'idle' | 'sending' | 'streaming',
+    scrollableDivRef: messagesContainerRef,
+    endDivRef: messagesEndRef,
+    enableAutoScroll: true,
+    mobile: false, // 可以根据实际情况调整
+  });
+  
+  // 只在消息内容变化时才进行智能滚动（不包括进度更新）
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    // 只在有新消息且用户未主动滚动时才执行自动滚动
+    if (messages.length > 0 && !userHasScrolled && isLoading) {
+      // 使用节流调用滚动，避免过于频繁
+      const timeoutId = setTimeout(() => {
+        // 只有在流式输出时才自动滚动
+        if (isLoading && messagesEndRef.current) {
+          messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100); // 100ms 节流
+      
+      return () => clearTimeout(timeoutId);
     }
-  }, [messages, searchProgress]);
+  }, [messages.length, isLoading, userHasScrolled]); // 移除 searchProgress 依赖
 
   // Focus input on mount
   useEffect(() => {
@@ -93,6 +118,9 @@ export default function ChatInterface({
     setInputMessage('');
     setSelectedFileIds([]);
     
+    // 重置用户滚动状态，启用新消息的自动滚动
+    resetUserScrollState();
+    
     try {
       await onSendMessage(messageToSend, filesToSend, foldersToSend);
     } catch (error) {
@@ -113,6 +141,25 @@ export default function ChatInterface({
         ? prev.filter(id => id !== fileId)
         : [...prev, fileId]
     );
+  }, []);
+
+  const handleDocumentClick = useCallback((document: OnyxDocument) => {
+    openDocument(document, setPresentingDocument);
+    console.log('Document clicked:', document);
+  }, []);
+
+  const handleSubQuestionClick = useCallback((question: SubQuestionDetail) => {
+    setSelectedSubQuestion(question);
+    console.log('Sub-question clicked:', question);
+  }, []);
+
+  const handleCitationClick = useCallback((citation: Citation) => {
+    console.log('Citation clicked:', citation);
+    
+    // Open citation link if available
+    if (citation.link) {
+      window.open(citation.link, '_blank');
+    }
   }, []);
 
   const hasSelectedFolder = selectedFolderId !== null && selectedFolderId !== undefined;
@@ -289,17 +336,13 @@ export default function ChatInterface({
               message={message}
               variant={variant}
               isLast={index === messages.length - 1}
+              onCitationClick={handleCitationClick}
+              onDocumentClick={handleDocumentClick}
+              onSubQuestionClick={handleSubQuestionClick}
+              searchProgress={message.type === 'assistant' && message.isStreaming && searchProgress ? searchProgress : undefined}
             />
           ))}
         </AnimatePresence>
-
-        {/* Search Progress */}
-        {searchProgress && (
-          <EnhancedSearchProgress 
-            progress={searchProgress} 
-            variant={variant} 
-          />
-        )}
 
         {/* Loading Indicator */}
         {isLoading && !searchProgress && (

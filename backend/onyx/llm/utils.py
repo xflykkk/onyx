@@ -657,7 +657,8 @@ def model_supports_image_input(model_name: str, model_provider: str) -> bool:
             )
         return model_obj.get("supports_vision", False)
     except Exception:
-        logger.exception(
+        # Changed to debug to avoid spamming logs for custom models
+        logger.debug(
             f"Failed to get model object for {model_provider}/{model_name}"
         )
         return False

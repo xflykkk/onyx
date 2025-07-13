@@ -19,7 +19,6 @@ import {
 } from '@/lib/api';
 import {
   StreamingProcessor,
-  TypingEffectProcessor,
   StreamingPhaseManager,
   StreamingPhase,
   createMessageId,
@@ -54,10 +53,10 @@ export function useChat(): UseChatReturn {
 
   // Refs for managing streaming and processors
   const streamingProcessor = useRef<StreamingProcessor | null>(null);
-  const typingProcessor = useRef<TypingEffectProcessor | null>(null);
   const phaseManager = useRef<StreamingPhaseManager | null>(null);
   const abortController = useRef<AbortController | null>(null);
   const lastProgressUpdateTime = useRef<number>(0);
+  const PROGRESS_UPDATE_INTERVAL = 200; // 统一进度更新间隔为200ms
 
   // Initialize chat session and personas
   useEffect(() => {
@@ -114,10 +113,7 @@ export function useChat(): UseChatReturn {
       abortController.current = null;
     }
 
-    if (typingProcessor.current) {
-      typingProcessor.current.complete();
-      typingProcessor.current = null;
-    }
+    // 无需处理打字机效果
 
     if (streamingProcessor.current) {
       const finalMessage = streamingProcessor.current.generateChatMessage();
@@ -139,7 +135,20 @@ export function useChat(): UseChatReturn {
 
     setIsLoading(false);
     setChatState('idle');
-    setSearchProgress(null);
+    
+    // 将进度标记为完成和折叠，确保所有子问题都完成
+    setSearchProgress(prev => prev ? {
+      ...prev,
+      phase: 'complete',
+      isCompleted: true,
+      isCollapsed: true,
+      // 确保所有子问题都标记为完成
+      subQuestions: prev.subQuestions?.map(sq => ({
+        ...sq,
+        is_complete: true,
+        answer_streaming: false
+      })) || []
+    } : null);
   }, []);
 
   const updateSearchProgress = useCallback((progress: SearchProgress) => {
@@ -147,9 +156,9 @@ export function useChat(): UseChatReturn {
       // 避免无效更新：比较进度对象是否真正改变
       if (currentProgress && 
           currentProgress.phase === progress.phase &&
-          currentProgress.total === progress.total &&
-          currentProgress.current === progress.current &&
-          currentProgress.message === progress.message) {
+          currentProgress.subQueries === progress.subQueries &&
+          currentProgress.documents === progress.documents &&
+          currentProgress.currentAnswer === progress.currentAnswer) {
         return currentProgress;
       }
       return progress;
@@ -290,27 +299,11 @@ export function useChat(): UseChatReturn {
 
         // Initialize processors
         streamingProcessor.current = new StreamingProcessor(assistantMessageId);
-        
-        typingProcessor.current = new TypingEffectProcessor(
-          updateCurrentMessage,
-          () => {
-            setIsLoading(false);
-            setChatState('idle');
-            setSearchProgress(null);
-          },
-          30 // 30ms per character for smooth typing
-        );
 
+        // 创建阶段管理器，但不在这里更新进度（避免重复更新）
         phaseManager.current = new StreamingPhaseManager(phase => {
-          if (streamingProcessor.current) {
-            const now = Date.now();
-            if (now - lastProgressUpdateTime.current > 100) { // 限制更新频率
-              const progress = streamingProcessor.current.getSearchProgress();
-              progress.phase = phase as SearchProgress['phase'];
-              updateSearchProgress(progress);
-              lastProgressUpdateTime.current = now;
-            }
-          }
+          console.log('🎭 Phase changed to:', phase);
+          // 阶段变化时不立即更新进度，统一在主循环中处理
         });
 
         // Process streaming response
@@ -322,6 +315,7 @@ export function useChat(): UseChatReturn {
           }
 
           console.log('📦 Received chunk:', chunk);
+          console.log('🚀 About to process chunk:', chunk.substring(0, 100) + '...');
           const packet = streamingProcessor.current.processPacket(chunk);
           if (!packet) {
             console.log('⚠️ Packet processing returned null');
@@ -336,41 +330,39 @@ export function useChat(): UseChatReturn {
             phaseManager.current.transitionTo(detectedPhase);
           }
 
-          // Update search progress (with throttling to avoid too frequent updates)
+          // 统一的进度更新逻辑（减少更新频率以避免进度被"挤走"）
           const now = Date.now();
-          if (now - lastProgressUpdateTime.current > 100) { // 限制更新频率为每100ms最多一次
+          if (now - lastProgressUpdateTime.current > PROGRESS_UPDATE_INTERVAL) {
             const currentProgress = streamingProcessor.current.getSearchProgress();
-            // Override phase with the current phase from phase manager
+            // 使用阶段管理器的当前阶段
             if (phaseManager.current) {
               currentProgress.phase = phaseManager.current.getCurrentPhase() as SearchProgress['phase'];
             }
-            console.log('📊 Current progress:', currentProgress);
+            console.log('📊 Progress update:', currentProgress);
             updateSearchProgress(currentProgress);
             lastProgressUpdateTime.current = now;
           }
 
-          // Update typing animation with current answer
+          // 直接更新消息内容（无打字机效果，参考 onyx/web 实现）
           const currentAnswer = streamingProcessor.current.getCurrentAnswer();
           console.log('💬 Current answer:', currentAnswer);
-          if (currentAnswer && typingProcessor.current) {
-            console.log('⌨️ Updating typing processor with answer');
-            typingProcessor.current.updateTarget(currentAnswer);
+          if (currentAnswer) {
+            console.log('📝 Directly updating message content');
+            updateCurrentMessage(currentAnswer);
           }
 
           // Check for completion
           if (streamingProcessor.current.isStreamComplete()) {
             console.log('🎯 Stream complete detected');
+            console.log('📄 Documents collected:', streamingProcessor.current.getDocuments());
+            console.log('🔍 SubQueries collected:', streamingProcessor.current.getSubQueries().length);
             const finalMessage = streamingProcessor.current.generateChatMessage();
             const messageDetail = streamingProcessor.current.getMessageDetail();
             
             console.log('📝 Final message:', finalMessage);
             console.log('📋 Message detail:', messageDetail);
             
-            // Complete typing animation
-            if (typingProcessor.current) {
-              console.log('⌨️ Completing typing animation');
-              typingProcessor.current.complete();
-            }
+            // 无需完成打字机动画，内容已直接更新
 
             // Update final message
             setMessages(prev => {
@@ -415,6 +407,27 @@ export function useChat(): UseChatReturn {
         }
         
         console.log('🏁 Finished processing streaming response');
+        
+        // Handle final message completion when stream ends without explicit completion signal
+        if (streamingProcessor.current && !streamingProcessor.current.isStreamComplete()) {
+          console.log('🔄 Stream ended without completion signal, finalizing message');
+          console.log('📄 Documents collected at stream end:', streamingProcessor.current.getDocuments());
+          console.log('🔍 SubQueries collected at stream end:', streamingProcessor.current.getSubQueries().length);
+          
+          const finalMessage = streamingProcessor.current.generateChatMessage();
+          console.log('📝 Final message from stream end:', finalMessage);
+          
+          // Update final message
+          setMessages(prev => {
+            const updated = [...prev];
+            const lastIndex = updated.length - 1;
+            if (lastIndex >= 0 && updated[lastIndex].type === 'assistant') {
+              console.log('📝 Updating final assistant message from stream end');
+              updated[lastIndex] = { ...finalMessage, isStreaming: false };
+            }
+            return updated;
+          });
+        }
 
       } catch (error: unknown) {
         console.error('Chat error:', error);
@@ -435,7 +448,20 @@ export function useChat(): UseChatReturn {
       } finally {
         setIsLoading(false);
         setChatState('idle');
-        setSearchProgress(null);
+        
+        // 将进度标记为完成和折叠，确保所有子问题都完成
+        setSearchProgress(prev => prev ? {
+          ...prev,
+          phase: 'complete',
+          isCompleted: true,
+          isCollapsed: true,
+          // 确保所有子问题都标记为完成
+          subQuestions: prev.subQuestions?.map(sq => ({
+            ...sq,
+            is_complete: true,
+            answer_streaming: false
+          })) || []
+        } : null);
         
         // Cleanup processors
         if (phaseManager.current) {
@@ -443,7 +469,6 @@ export function useChat(): UseChatReturn {
           phaseManager.current = null;
         }
         streamingProcessor.current = null;
-        typingProcessor.current = null;
         abortController.current = null;
       }
     },
@@ -509,13 +534,14 @@ export function useChat(): UseChatReturn {
   }, [chatSessionId, personas, stopGeneration]);
 
   const regenerateLastMessage = useCallback(async () => {
-    let lastUserMessage: ChatMessage | null = null;
-    let userMessageIndex = -1;
-
-    // Find the last user message using functional update
+    // 直接从当前 messages 状态中获取最后一条用户消息
     setMessages(currentMessages => {
       if (currentMessages.length < 2) return currentMessages;
 
+      let lastUserMessage: ChatMessage | null = null;
+      let userMessageIndex = -1;
+
+      // 找到最后一条用户消息
       for (let i = currentMessages.length - 1; i >= 0; i--) {
         if (currentMessages[i].type === 'user') {
           lastUserMessage = currentMessages[i];
@@ -526,14 +552,14 @@ export function useChat(): UseChatReturn {
 
       if (!lastUserMessage) return currentMessages;
 
-      // Remove all messages after the last user message
+      // 异步重新发送消息（在状态更新后执行）
+      setTimeout(() => {
+        sendMessage(lastUserMessage!.content);
+      }, 0);
+
+      // 移除最后一条用户消息之后的所有消息
       return currentMessages.slice(0, userMessageIndex + 1);
     });
-
-    if (!lastUserMessage) return;
-
-    // Resend the last user message
-    await sendMessage(lastUserMessage.content);
   }, [sendMessage]);
 
   const exportChat = useCallback(() => {

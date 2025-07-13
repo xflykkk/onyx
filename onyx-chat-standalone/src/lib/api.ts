@@ -13,6 +13,10 @@ import {
   Persona,
   APIError,
   StreamingResponse,
+  LLMProvider,
+  CreateLLMProviderRequest,
+  TestLLMProviderRequest,
+  LLMProviderTestResult,
 } from '@/types';
 
 class APIClient {
@@ -308,6 +312,69 @@ class APIClient {
     }
   }
 
+  // LLM Provider Management APIs
+  async getLLMProviders(): Promise<LLMProvider[]> {
+    return this.request<LLMProvider[]>('/admin/llm/provider');
+  }
+
+  async createLLMProvider(request: CreateLLMProviderRequest): Promise<LLMProvider> {
+    return this.request<LLMProvider>('/admin/llm/provider?is_creation=true', {
+      method: 'PUT',
+      body: JSON.stringify(request),
+    });
+  }
+
+  async updateLLMProvider(request: CreateLLMProviderRequest): Promise<LLMProvider> {
+    return this.request<LLMProvider>('/admin/llm/provider?is_creation=false', {
+      method: 'PUT',
+      body: JSON.stringify(request),
+    });
+  }
+
+  async deleteLLMProvider(providerId: number): Promise<void> {
+    await this.request<void>(`/admin/llm/provider/${providerId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async testLLMProvider(request: TestLLMProviderRequest): Promise<LLMProviderTestResult> {
+    try {
+      console.log('🔗 Calling LLM test API:', '/admin/llm/test');
+      console.log('📦 Request payload:', JSON.stringify(request, null, 2));
+      
+      const response = await this.request<void>('/admin/llm/test', {
+        method: 'POST',
+        body: JSON.stringify(request),
+      });
+      
+      console.log('✅ LLM test successful:', response);
+      return { success: true };
+    } catch (error: any) {
+      // Use console.warn instead of console.error to avoid triggering Next.js error boundary
+      console.warn('⚠️ LLM test failed:', error?.message || 'Unknown error');
+      console.warn('Status:', error?.status);
+      console.warn('Message:', error?.message);
+      
+      return { 
+        success: false, 
+        error: error.message || 'Test failed' 
+      };
+    }
+  }
+
+  async setDefaultProvider(providerId: number): Promise<void> {
+    await this.request<void>(`/admin/llm/provider/${providerId}/default`, {
+      method: 'POST',
+    });
+  }
+
+  async setDefaultVisionProvider(providerId: number, visionModel?: string): Promise<void> {
+    const params = visionModel ? `?vision_model=${encodeURIComponent(visionModel)}` : '';
+    await this.request<void>(`/admin/llm/provider/${providerId}/default-vision${params}`, {
+      method: 'POST',
+    });
+  }
+
   async validateFileType(file: File): Promise<boolean> {
     const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
     return APP_CONFIG.allowedFileTypes.includes(fileExtension);
@@ -472,3 +539,25 @@ export const validateFiles = (files: File[]) =>
 
 export const checkAPIHealth = () => 
   apiClient.checkHealth();
+
+// LLM Provider management functions
+export const getLLMProviders = () => 
+  apiClient.getLLMProviders();
+
+export const createLLMProvider = (request: CreateLLMProviderRequest) => 
+  apiClient.createLLMProvider(request);
+
+export const updateLLMProvider = (request: CreateLLMProviderRequest) => 
+  apiClient.updateLLMProvider(request);
+
+export const deleteLLMProvider = (providerId: number) => 
+  apiClient.deleteLLMProvider(providerId);
+
+export const testLLMProvider = (request: TestLLMProviderRequest) => 
+  apiClient.testLLMProvider(request);
+
+export const setDefaultProvider = (providerId: number) => 
+  apiClient.setDefaultProvider(providerId);
+
+export const setDefaultVisionProvider = (providerId: number, visionModel?: string) => 
+  apiClient.setDefaultVisionProvider(providerId, visionModel);

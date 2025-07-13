@@ -14,6 +14,7 @@ from onyx.prompts.chat_prompts import HISTORY_QUERY_REPHRASE
 from onyx.prompts.miscellaneous_prompts import LANGUAGE_REPHRASE_PROMPT
 from onyx.utils.logger import setup_logger
 from onyx.utils.text_processing import count_punctuation
+from onyx.utils.think_tag_stripper import ThinkTagStripper
 from onyx.utils.threadpool_concurrency import run_functions_tuples_in_parallel
 
 logger = setup_logger()

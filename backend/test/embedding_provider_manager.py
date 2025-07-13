@@ -266,7 +266,7 @@ class EmbeddingProviderManager:
             "rerank_model_name": None,
             "rerank_api_url": None,
             "rerank_provider_type": None,
-            "multilingual_expansion": []
+            "multilingual_expansion": ["Chinese", "English"]
         }
         
         print(f"   创建模型请求参数: {payload}")
@@ -410,7 +410,7 @@ class EmbeddingProviderManager:
                 "rerank_model_name": target_model.get('rerank_model_name'),
                 "rerank_api_url": target_model.get('rerank_api_url'),
                 "rerank_provider_type": target_model.get('rerank_provider_type'),
-                "multilingual_expansion": target_model.get('multilingual_expansion', []),
+                "multilingual_expansion": target_model.get('multilingual_expansion', ["Chinese", "English"]),
                 "background_reindex_enabled": False  # 不需要重新索引，立即切换
             }
             

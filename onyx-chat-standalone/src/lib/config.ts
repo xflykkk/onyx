@@ -117,6 +117,15 @@ export const API_ENDPOINTS = {
   
   // Personas
   getPersonas: '/persona',
+  
+  // LLM Provider Management
+  getLLMProviders: '/admin/llm/provider',
+  createLLMProvider: '/admin/llm/provider',
+  updateLLMProvider: '/admin/llm/provider',
+  deleteLLMProvider: '/admin/llm/provider',
+  testLLMProvider: '/admin/llm/test',
+  setDefaultProvider: '/admin/llm/provider',
+  setDefaultVisionProvider: '/admin/llm/provider',
 } as const;
 
 export const STORAGE_KEYS = {

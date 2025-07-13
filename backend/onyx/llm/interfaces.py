@@ -95,10 +95,12 @@ class LLM(abc.ABC):
         timeout_override: int | None = None,
         max_tokens: int | None = None,
     ) -> BaseMessage:
+        from onyx.utils.think_tag_stripper import ThinkTagStripper
+        
         self._precall(prompt)
         # TODO add a postcall to log model outputs independent of concrete class
         # implementation
-        return self._invoke_implementation(
+        result = self._invoke_implementation(
             prompt,
             tools,
             tool_choice,
@@ -106,6 +108,12 @@ class LLM(abc.ABC):
             timeout_override,
             max_tokens,
         )
+        
+        # Filter out think tags from LLM responses to prevent them from propagating
+        if isinstance(result.content, str):
+            result.content = ThinkTagStripper.clean_think_tags(result.content)
+        
+        return result
 
     @abc.abstractmethod
     def _invoke_implementation(
@@ -128,6 +136,8 @@ class LLM(abc.ABC):
         timeout_override: int | None = None,
         max_tokens: int | None = None,
     ) -> Iterator[BaseMessage]:
+        from onyx.utils.think_tag_stripper import ThinkTagStripper
+        
         self._precall(prompt)
         # TODO add a postcall to log model outputs independent of concrete class
         # implementation
@@ -140,8 +150,15 @@ class LLM(abc.ABC):
             max_tokens,
         )
 
+        # Create a stateful stripper for streaming think tag removal
+        stripper = ThinkTagStripper()
+        
         tokens = []
         for message in messages:
+            # Filter out think tags from streaming responses
+            if isinstance(message.content, str):
+                message.content = stripper.process_chunk(message.content)
+            
             if LOG_INDIVIDUAL_MODEL_TOKENS:
                 tokens.append(message.content)
             yield message

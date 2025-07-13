@@ -43,6 +43,7 @@ from onyx.llm.chat_llm import LLMTimeoutError
 from onyx.prompts.agent_search import (
     QUERY_REWRITING_PROMPT,
 )
+from onyx.utils.llm_content_parser import LLMContentParser
 from onyx.utils.logger import setup_logger
 from onyx.utils.threadpool_concurrency import run_with_timeout
 from onyx.utils.timing import log_function_time
@@ -104,7 +105,14 @@ def expand_queries(
         llm_response = merge_message_runs(llm_response_list, chunk_separator="")[
             0
         ].content
-        rewritten_queries = llm_response.split("\n")
+        
+        # Debug: 打印解析前的LLM响应
+        logger.info(f"[DEBUG] LLM response before parsing: {repr(llm_response)}")
+        
+        rewritten_queries = LLMContentParser.parse_queries(llm_response)
+        
+        # Debug: 打印解析后的查询
+        logger.info(f"[DEBUG] Parsed queries: {rewritten_queries}")
         log_result = f"Number of expanded queries: {len(rewritten_queries)}"
 
     except (LLMTimeoutError, TimeoutError):

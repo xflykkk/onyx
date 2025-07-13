@@ -121,13 +121,84 @@ export interface DocumentInfoPacket {
   is_internet: boolean;
 }
 
+// Based on onyx/web implementation
+export interface SubQueryDetail {
+  query: string;
+  query_id: number;
+  doc_ids?: number[] | null;
+}
+
+export interface SubQuestionDetail {
+  level: number;
+  level_question_num: number;
+  question: string;
+  answer?: string;
+  sub_queries?: SubQueryDetail[] | null;
+  context_docs?: { top_documents: OnyxDocument[] } | null;
+  is_complete?: boolean;
+  is_stopped?: boolean;
+  answer_streaming?: boolean;
+}
+
+// For streaming pieces - compatible with backend data
 export interface SubQueryPiece {
   sub_query: string;
-  status: "todo" | "in_progress" | "done";
+  level: number;
+  level_question_num: number;
+  query_id?: number;
+  status?: "todo" | "in_progress" | "done";
   analysis?: string;
   search_queries?: string[];
   documents?: DocumentInfoPacket[];
+  
+  // Additional fields that may come from backend
+  question?: string;
+  answer?: string;
+  is_complete?: boolean;
+  sub_queries?: SubQueryDetail[] | Array<{
+    query: string;
+    status: "todo" | "in_progress" | "done";
+  }>;
+  context_docs?: {
+    top_documents: OnyxDocument[];
+  };
 }
+
+// Stream piece types for constructSubQuestions
+export interface SubQuestionPiece {
+  sub_question: string;
+  level: number;
+  level_question_num: number;
+}
+
+export interface AgentAnswerPiece {
+  answer_piece: string;
+  level: number;
+  level_question_num: number;
+  answer_type?: string;
+}
+
+export interface SubQuestionSearchDoc {
+  top_documents: OnyxDocument[];
+  level: number;
+  level_question_num: number;
+  rephrased_query?: string;
+}
+
+export interface StreamStopInfo {
+  stop_reason: string;
+  stream_type: string;
+  level: number;
+  level_question_num: number;
+}
+
+// Union type for constructSubQuestions
+export type StreamingDetail = 
+  | SubQuestionPiece 
+  | SubQueryPiece 
+  | AgentAnswerPiece 
+  | SubQuestionSearchDoc 
+  | StreamStopInfo;
 
 export interface ThinkingTokens {
   thinking_content: string;
@@ -181,7 +252,8 @@ export interface ChatMessage {
   timestamp: Date;
   isStreaming?: boolean;
   documents?: DocumentInfoPacket[];
-  subQueries?: SubQueryPiece[];
+  subQuestions?: SubQuestionDetail[]; // 正确字段名，使用 SubQuestionDetail 类型
+  subQueries?: SubQueryPiece[]; // 保留兼容性
   thinkingContent?: string;
   error?: string;
   citations?: Citation[];
@@ -193,7 +265,47 @@ export interface Citation {
   link: string;
   text: string;
   sourceType: string;
+  // Extended properties for enhanced functionality
+  semanticIdentifier?: string;
+  blurb?: string;
+  matchHighlights?: string[];
+  score?: number;
+  isInternet?: boolean;
+  metadata?: Record<string, any>;
 }
+
+// Enhanced Document interface for compatibility with onyx/web
+export interface OnyxDocument {
+  document_id: string;
+  semantic_identifier: string;
+  link: string | null;
+  source_type: string;
+  blurb: string;
+  boost: number;
+  score: number;
+  chunk_ind: number;
+  match_highlights: string[];
+  metadata: Record<string, any>;
+  updated_at: string;
+  is_internet: boolean;
+}
+
+// Document card properties for citation tooltips
+export interface DocumentCardProps {
+  document: OnyxDocument;
+  updatePresentingDocument: (document: OnyxDocument) => void;
+  icon?: React.ReactNode;
+  url?: string;
+}
+
+// Question card properties for sub-question citations
+export interface QuestionCardProps {
+  question: SubQuestionDetail;
+  openQuestion: (question: SubQuestionDetail) => void;
+}
+
+// Sub question detail for agentic search
+// Remove duplicate - already defined above
 
 // File Upload Types
 export interface UploadedFile {
@@ -213,9 +325,12 @@ export type ChatState = "idle" | "uploading" | "indexing" | "sending" | "streami
 export interface SearchProgress {
   phase: "waiting" | "sub_queries" | "context_docs" | "answer" | "evaluate" | "complete";
   subQueries: SubQueryPiece[];
+  subQuestions: SubQuestionDetail[]; // 添加子问题详情
   documents: DocumentInfoPacket[];
   thinkingContent: string;
   currentAnswer: string;
+  isCollapsed?: boolean; // 添加折叠状态
+  isCompleted?: boolean; // 添加完成状态
 }
 
 // API Error Types
@@ -432,3 +547,66 @@ export type APIResponse<T = any> = {
 export type EventHandler<T = any> = (data: T) => void;
 
 export type AsyncEventHandler<T = any> = (data: T) => Promise<void>;
+
+// LLM Provider Management Types
+export interface ModelConfiguration {
+  name: string;
+  is_visible: boolean;
+  max_input_tokens?: number;
+  api_key?: string;
+  api_base?: string;
+}
+
+export interface LLMProvider {
+  id: number;
+  name: string;
+  provider: string;
+  api_key?: string;
+  api_base?: string;
+  api_version?: string;
+  custom_config?: Record<string, string>;
+  default_model_name: string;
+  fast_default_model_name?: string;
+  deployment_name?: string;
+  is_public: boolean;
+  groups: number[];
+  default_vision_model?: string;
+  model_configurations: ModelConfiguration[];
+  is_default_provider?: boolean;
+}
+
+export interface CreateLLMProviderRequest {
+  name: string;
+  provider: string;
+  api_key?: string;
+  api_base?: string;
+  api_version?: string;
+  custom_config?: Record<string, string>;
+  default_model_name: string;
+  fast_default_model_name?: string;
+  deployment_name?: string;
+  is_public: boolean;
+  groups: number[];
+  default_vision_model?: string;
+  model_configurations: ModelConfiguration[];
+  api_key_changed: boolean;
+}
+
+export interface TestLLMProviderRequest {
+  name: string;
+  provider: string;
+  api_key?: string;
+  api_base?: string;
+  api_version?: string;
+  custom_config?: Record<string, string>;
+  default_model_name: string;
+  fast_default_model_name?: string;
+  deployment_name?: string;
+  model_configurations: ModelConfiguration[];
+  api_key_changed: boolean;
+}
+
+export interface LLMProviderTestResult {
+  success: boolean;
+  error?: string;
+}

@@ -30,6 +30,7 @@ from onyx.chat.prompt_builder.citations_prompt import (
 )
 from onyx.configs.app_configs import WEB_DOMAIN
 from onyx.configs.chat_configs import HARD_DELETE_CHATS
+from onyx.utils.stream_logger import create_stream_logger_wrapper, create_request_info
 from onyx.configs.constants import DocumentSource
 from onyx.configs.constants import FileOrigin
 from onyx.configs.constants import MessageType
@@ -469,7 +470,18 @@ def handle_new_chat_message(
         finally:
             logger.debug("Stream generator finished")
 
-    return StreamingResponse(stream_generator(), media_type="text/event-stream")
+    # 创建请求信息用于日志记录
+    request_info = create_request_info(
+        chat_message_req=chat_message_req,
+        user=user,
+        client_ip=request.client.host if request.client else "unknown",
+        user_agent=request.headers.get("user-agent", "unknown")
+    )
+    
+    # 包装流生成器，添加日志记录
+    logged_stream = create_stream_logger_wrapper(stream_generator(), request_info)
+    
+    return StreamingResponse(logged_stream, media_type="text/event-stream")
 
 
 @router.put("/set-message-as-latest")

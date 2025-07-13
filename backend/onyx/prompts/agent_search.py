@@ -58,7 +58,7 @@ or it is not clear that the products are built by Company A). Only state what yo
 ASSISTANT_SYSTEM_PROMPT_DEFAULT = "You are an assistant for question-answering tasks."
 
 ASSISTANT_SYSTEM_PROMPT_PERSONA = f"""
-You are an assistant for question-answering tasks. Here is more information about you:
+no_think. You are an assistant for question-answering tasks. Here is more information about you:
 {SEPARATOR_LINE}
 {{persona_prompt}}
 {SEPARATOR_LINE}
@@ -168,7 +168,7 @@ History summary:
 # Sub-question
 # Intentionally left a copy in case we want to modify this one differently
 INITIAL_QUESTION_DECOMPOSITION_PROMPT = f"""
-Please create a list of no more than 3 sub-questions whose answers would help to inform the answer \
+no_think. Please create a list of no more than 3 sub-questions whose answers would help to inform the answer \
 to the initial question.
 
 The purpose for these sub-questions could be:
@@ -230,7 +230,7 @@ Answer:
 # to generate new questions
 # Intentionally left a copy in case we want to modify this one differently
 INITIAL_QUESTION_DECOMPOSITION_PROMPT_ASSUMING_REFINEMENT = f"""
-Please create a list of no more than 3 sub-questions whose answers would help to inform the answer \
+no_think. Please create a list of no more than 3 sub-questions whose answers would help to inform the answer \
 to the initial question.
 
 The purpose for these sub-questions could be:
@@ -297,7 +297,7 @@ Answer:
 
 # TODO: combine shared pieces with INITIAL_QUESTION_DECOMPOSITION_PROMPT
 INITIAL_DECOMPOSITION_PROMPT_QUESTIONS_AFTER_SEARCH = f"""
-Please create a list of no more than 3 sub-questions whose answers would help to inform the answer \
+no_think. Please create a list of no more than 3 sub-questions whose answers would help to inform the answer \
 to the initial question.
 
 The purpose for these sub-questions could be:
@@ -365,7 +365,7 @@ Answer:
 """.strip()
 
 INITIAL_DECOMPOSITION_PROMPT_QUESTIONS_AFTER_SEARCH_ASSUMING_REFINEMENT = f"""
-Please create a list of no more than 3 sub-questions whose answers would help to inform the answer \
+no_think. Please create a list of no more than 3 sub-questions whose answers would help to inform the answer \
 to the initial question.
 
 The purpose for these sub-questions could be:
@@ -445,7 +445,7 @@ Answer:
 
 # Retrieval
 QUERY_REWRITING_PROMPT = f"""
-Please convert the initial user question into a 2-3 more appropriate short and pointed search queries for \
+/no_think. Please convert the initial user question into a 2-3 more appropriate short and pointed search queries for \
 retrieval from a document store. Particularly, try to think about resolving ambiguities and make the search \
 queries more specific, enabling the system to search more broadly.
 
@@ -543,7 +543,7 @@ Answer:
 
 
 SUB_ANSWER_CHECK_PROMPT = f"""
-Determine whether the given answer addresses the given question. \
+no_think.Determine whether the given answer addresses the given question. \
 Please do not use any internal knowledge you may have - just focus on whether the answer \
 as given seems to largely address the question as given, or at least addresses part of the question.
 

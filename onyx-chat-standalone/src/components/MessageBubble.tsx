@@ -11,19 +11,26 @@ import {
   ExternalLink,
   FileText,
   Clock,
-  Quote,
   ChevronDown,
   ChevronUp,
 } from 'lucide-react';
-import { ChatMessage, Citation } from '@/types';
+import { ChatMessage, Citation, OnyxDocument, SubQuestionDetail, SubQueryDetail, SearchProgress } from '@/types';
 import { cn, formatRelativeTime, copyToClipboard } from '@/lib/utils';
+import { MemoizedAnchor, MemoizedParagraph } from './MemoizedTextComponents';
+import { SourcesDisplay } from './SourcesDisplay';
+import CitationRenderer from './CitationRenderer';
+import SubQuestionsDisplay from './SubQuestionsDisplay';
+import EnhancedSearchProgress from './EnhancedSearchProgress';
 
 interface MessageBubbleProps {
   message: ChatMessage;
   variant?: 'glassmorphism' | 'neumorphic';
   isLast?: boolean;
   onCitationClick?: (citation: Citation) => void;
+  onDocumentClick?: (document: OnyxDocument) => void;
+  onSubQuestionClick?: (question: SubQuestionDetail) => void;
   className?: string;
+  searchProgress?: SearchProgress;
 }
 
 export default function MessageBubble({
@@ -31,11 +38,15 @@ export default function MessageBubble({
   variant = 'glassmorphism',
   isLast = false,
   onCitationClick,
+  onDocumentClick,
+  onSubQuestionClick,
   className,
+  searchProgress,
 }: MessageBubbleProps) {
   const [copied, setCopied] = useState(false);
-  const [showCitations, setShowCitations] = useState(false);
   const [showThinking, setShowThinking] = useState(false);
+  const [showSources, setShowSources] = useState(false);
+  const [presentingDocument, setPresentingDocument] = useState<OnyxDocument | null>(null);
 
   const handleCopy = useCallback(async () => {
     const success = await copyToClipboard(message.content);
@@ -45,13 +56,38 @@ export default function MessageBubble({
     }
   }, [message.content]);
 
+  const handleDocumentClick = useCallback((document: OnyxDocument) => {
+    setPresentingDocument(document);
+    onDocumentClick?.(document);
+  }, [onDocumentClick]);
+
+  const handleSubQuestionClick = useCallback((question: SubQuestionDetail) => {
+    onSubQuestionClick?.(question);
+  }, [onSubQuestionClick]);
+
   const isUser = message.type === 'user';
   const hasContent = message.content && message.content.trim().length > 0;
-  const hasCitations = message.citations && message.citations.length > 0;
   const hasThinking = message.thinkingContent && message.thinkingContent.trim().length > 0;
+  const hasDocuments = message.documents && message.documents.length > 0;
+  
+  // Convert DocumentInfoPacket to OnyxDocument for compatibility
+  const onyxDocuments: OnyxDocument[] = message.documents?.map(doc => ({
+    document_id: doc.document_id,
+    semantic_identifier: doc.semantic_identifier,
+    link: doc.link,
+    source_type: doc.source_type,
+    blurb: doc.blurb,
+    boost: doc.boost,
+    score: doc.score,
+    chunk_ind: doc.chunk_ind,
+    match_highlights: doc.match_highlights,
+    metadata: doc.metadata,
+    updated_at: doc.updated_at,
+    is_internet: doc.is_internet,
+  })) || [];
 
   const bubbleClasses = cn(
-    'flex space-x-3 max-w-4xl mx-auto w-full',
+    'flex space-x-3 max-w-4xl mx-auto w-full min-w-0',
     isUser ? 'flex-row-reverse space-x-reverse' : 'flex-row',
     className
   );
@@ -68,12 +104,12 @@ export default function MessageBubble({
   );
 
   const contentClasses = cn(
-    'flex-1 space-y-2',
+    'flex-1 space-y-2 min-w-0',
     isUser ? 'items-end' : 'items-start'
   );
 
   const messageBubbleClasses = cn(
-    'relative px-4 py-3 rounded-2xl max-w-none',
+    'relative px-4 py-3 rounded-2xl overflow-hidden break-words',
     isUser
       ? variant === 'glassmorphism'
         ? 'message-bubble-user ml-12'
@@ -152,6 +188,22 @@ export default function MessageBubble({
           </motion.div>
         )}
 
+        {/* Search Progress (for assistant only, during streaming) */}
+        {!isUser && searchProgress && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="mr-12 mb-4"
+          >
+            <EnhancedSearchProgress 
+              progress={searchProgress} 
+              variant={variant}
+              onDocumentClick={onDocumentClick}
+            />
+          </motion.div>
+        )}
+
         {/* Main Message */}
         {hasContent && (
           <div className={messageBubbleClasses}>
@@ -167,12 +219,76 @@ export default function MessageBubble({
             )}
 
             {/* Message Content */}
-            <div className={textClasses}>
-              <ReactMarkdown
-                className="prose prose-sm max-w-none"
-                components={{
-                  // Customize markdown rendering
-                  p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+            <div className={cn(textClasses, 'overflow-hidden')}>
+              {/* Debug message content */}
+              <div className="hidden">
+                <pre className="text-xs opacity-50 break-all">
+                  {JSON.stringify({ 
+                    content: message.content,
+                    hasDocuments,
+                    docsCount: onyxDocuments.length,
+                    rawDocuments: message.documents,
+                    onyxDocuments: onyxDocuments 
+                  }, null, 2)}
+                </pre>
+              </div>
+              
+              {/* Debug: Log document data only when not streaming */}
+              {!message.isStreaming && (() => {
+                console.log('📄 MessageBubble final document debug:', {
+                  'message.documents': message.documents,
+                  'message.documents length': message.documents?.length || 0,
+                  'onyxDocuments length': onyxDocuments.length,
+                  'onyxDocuments': onyxDocuments,
+                  'message.subQueries': message.subQueries,
+                  'message.subQueries length': message.subQueries?.length || 0,
+                  'message.subQuestions': message.subQuestions,
+                  'message.subQuestions length': message.subQuestions?.length || 0,
+                  'hasDocuments': hasDocuments,
+                  'citation count in content': (message.content.match(/\[(D|Q)?\d+\]/g) || []).length
+                });
+                return null;
+              })()}
+              
+              {/* Process message content to convert citations to links */}
+              {(() => {
+                // Pre-process content to convert [D1] to [[D1]](citation:D1)
+                const processedContent = message.content.replace(
+                  /\[([DQ]?\d+)\]/g,
+                  (match, citation) => {
+                    console.log('Pre-processing citation:', match, citation);
+                    return `[[${citation}]](citation:${citation})`;
+                  }
+                );
+                
+                console.log('Processed content:', processedContent);
+                
+                return (
+                  <ReactMarkdown
+                    className="prose prose-sm max-w-none break-words"
+                    components={{
+                  // Enhanced markdown rendering with citation support
+                  p: ({ children }) => (
+                    <MemoizedParagraph fontSize="sm" variant={variant}>
+                      {children}
+                    </MemoizedParagraph>
+                  ),
+                  // Handle text nodes that might contain citations
+                  text: ({ children }) => {
+                    const text = children?.toString() || '';
+                    console.log('ReactMarkdown text node:', text);
+                    
+                    return (
+                      <CitationRenderer
+                        text={text}
+                        docs={onyxDocuments}
+                        subQuestions={message.subQuestions}
+                        onDocumentClick={handleDocumentClick}
+                        onSubQuestionClick={handleSubQuestionClick}
+                        variant={variant}
+                      />
+                    );
+                  },
                   code: ({ children, className }) => {
                     const isInline = !className;
                     return isInline ? (
@@ -205,29 +321,43 @@ export default function MessageBubble({
                       {children}
                     </blockquote>
                   ),
-                  a: ({ href, children }) => (
-                    <a
-                      href={href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={cn(
-                        'inline-flex items-center space-x-1 underline hover:no-underline transition-colors',
-                        variant === 'glassmorphism'
-                          ? 'text-blue-300 hover:text-blue-200'
-                          : 'text-blue-600 hover:text-blue-800'
-                      )}
-                    >
-                      <span>{children}</span>
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
-                  ),
-                  ul: ({ children }) => <ul className="list-disc list-inside space-y-1">{children}</ul>,
-                  ol: ({ children }) => <ol className="list-decimal list-inside space-y-1">{children}</ol>,
-                  li: ({ children }) => <li className="text-sm">{children}</li>,
-                }}
-              >
-                {message.content}
-              </ReactMarkdown>
+                      a: ({ href, children }) => {
+                        console.log('ReactMarkdown link:', { href, children });
+                        
+                        // Check if this is a citation link
+                        if (href?.startsWith('citation:')) {
+                          const citationText = href.replace('citation:', '');
+                          console.log('Found citation link:', citationText);
+                        }
+                        
+                        return (
+                          <MemoizedAnchor
+                            docs={onyxDocuments}
+                            subQuestions={message.subQuestions}
+                            openQuestion={handleSubQuestionClick}
+                            href={href}
+                            updatePresentingDocument={handleDocumentClick}
+                            variant={variant}
+                          >
+                            {children}
+                          </MemoizedAnchor>
+                        );
+                      },
+                      ul: ({ children }) => (
+                        <ul className="list-disc list-outside ml-4 space-y-1">{children}</ul>
+                      ),
+                      ol: ({ children }) => (
+                        <ol className="list-decimal list-outside ml-4 space-y-1">{children}</ol>
+                      ),
+                      li: ({ children }) => (
+                        <li className="text-sm leading-relaxed">{children}</li>
+                      ),
+                    }}
+                  >
+                    {processedContent}
+                  </ReactMarkdown>
+                );
+              })()}
             </div>
 
             {/* Actions */}
@@ -255,89 +385,54 @@ export default function MessageBubble({
           </div>
         )}
 
-        {/* Citations */}
-        {!isUser && hasCitations && (
+        {/* Divider before sub-questions */}
+        {!isUser && (message.subQuestions && message.subQuestions.length > 0) && (
+          <div className={cn(
+            'mr-12 my-4 border-t border-dashed',
+            variant === 'glassmorphism'
+              ? 'border-white/30'
+              : 'border-gray-300'
+          )} />
+        )}
+
+        {/* Sub-Questions Display */}
+        {!isUser && message.subQuestions && message.subQuestions.length > 0 && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
             className="mr-12"
           >
-            <button
-              onClick={() => setShowCitations(!showCitations)}
-              className={cn(
-                'flex items-center space-x-2 text-xs font-medium transition-colors mb-2',
-                variant === 'glassmorphism'
-                  ? 'text-white/70 hover:text-white/90'
-                  : 'text-gray-600 hover:text-gray-800'
-              )}
-            >
-              <Quote className="w-4 h-4" />
-              <span>{message.citations!.length} Source{message.citations!.length !== 1 ? 's' : ''}</span>
-              {showCitations ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-            </button>
+            <SubQuestionsDisplay
+              subQuestions={message.subQuestions}
+              variant={variant}
+              onSubQuestionClick={handleSubQuestionClick}
+              onDocumentClick={handleDocumentClick}
+              isStreamingQuestions={message.isStreaming}
+            />
+          </motion.div>
+        )}
 
-            {showCitations && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="space-y-2"
-              >
-                {message.citations!.map((citation, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className={cn(
-                      'p-3 rounded-lg border cursor-pointer transition-all group',
-                      variant === 'glassmorphism'
-                        ? 'glass-light border-white/20 hover:glass-effect'
-                        : 'neuro-flat bg-gray-50 border-gray-200 hover:neuro-raised'
-                    )}
-                    onClick={() => onCitationClick?.(citation)}
-                  >
-                    <div className="flex items-start space-x-3">
-                      <FileText className={cn(
-                        'w-4 h-4 flex-shrink-0 mt-0.5',
-                        variant === 'glassmorphism' ? 'text-white/70' : 'text-gray-600'
-                      )} />
-                      
-                      <div className="flex-1 min-w-0">
-                        <h4 className={cn(
-                          'text-sm font-medium truncate',
-                          variant === 'glassmorphism' ? 'text-glass' : 'text-gray-800'
-                        )}>
-                          {citation.documentName}
-                        </h4>
-                        
-                        <p className={cn(
-                          'text-xs mt-1 line-clamp-2',
-                          variant === 'glassmorphism' ? 'text-white/60' : 'text-gray-600'
-                        )}>
-                          {citation.text}
-                        </p>
-                        
-                        <div className={cn(
-                          'flex items-center space-x-2 mt-2 text-xs',
-                          variant === 'glassmorphism' ? 'text-white/50' : 'text-gray-500'
-                        )}>
-                          <span className="px-2 py-0.5 rounded-full bg-current/20">
-                            {citation.sourceType}
-                          </span>
-                          
-                          {citation.link && (
-                            <div className="flex items-center space-x-1">
-                              <ExternalLink className="w-3 h-3" />
-                              <span className="truncate max-w-32">{citation.link}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </motion.div>
-            )}
+        {/* Sources Display */}
+        {!isUser && hasDocuments && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mr-12 mt-2"
+          >
+            <SourcesDisplay
+              documents={onyxDocuments}
+              setPresentingDocument={handleDocumentClick}
+              toggleDocumentSelection={() => setShowSources(!showSources)}
+              variant={variant}
+              animateEntrance={false}
+              threeCols={false}
+              hideDocumentDisplay={false}
+              docSidebarToggled={showSources}
+              compact={true}
+              defaultCollapsed={true}
+            />
           </motion.div>
         )}
 

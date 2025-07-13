@@ -56,10 +56,12 @@ TITLE_CONTENT_RATIO = max(
 
 # A list of languages passed to the LLM to rephase the query
 # For example "English,French,Spanish", be sure to use the "," separator
-MULTILINGUAL_QUERY_EXPANSION = os.environ.get("MULTILINGUAL_QUERY_EXPANSION") or "Chinese,English"
+MULTILINGUAL_QUERY_EXPANSION = os.environ.get("MULTILINGUAL_QUERY_EXPANSION") or "Chinese"
 LANGUAGE_HINT = "\n" + (
     os.environ.get("LANGUAGE_HINT")
-    or "IMPORTANT: Respond in the same language as my query!"
+    # TODO 原始回复语言，后续需要改掉
+    # or "IMPORTANT: Respond in the same language as my query!"
+    or "IMPORTANT: Respond in Chinese!"
 )
 LANGUAGE_CHAT_NAMING_HINT = (
     os.environ.get("LANGUAGE_CHAT_NAMING_HINT")

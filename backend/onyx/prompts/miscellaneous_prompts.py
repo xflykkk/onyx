@@ -1,12 +1,12 @@
 # Prompts that aren't part of a particular configurable feature
 
 LANGUAGE_REPHRASE_PROMPT = """
-Translate query to {target_language}.
-If the query at the end is already in {target_language}, simply repeat the ORIGINAL query back to me, EXACTLY as is with no edits.
-If the query below is not in {target_language}, translate it into {target_language}.
-
-Query:
-{query}
+/no_think. Translate query to {target_language}.
+RULES: 
+1. Translate the text between <<< and >>> into {target_language}.
+2. If the query at the end is already in {target_language}, simply repeat the ORIGINAL query back to me, EXACTLY as is with no edits.
+3. If the query below is not in {target_language}, translate it into {target_language}.Query:
+<<<{query}>>>
 """.strip()
 
 SLACK_LANGUAGE_REPHRASE_PROMPT = """

@@ -98,11 +98,10 @@ def get_local_connector_classifier(
 def get_intent_model_tokenizer() -> PreTrainedTokenizer:
     global _INTENT_TOKENIZER
     if _INTENT_TOKENIZER is None:
-        # The tokenizer details are not uploaded to the HF hub since it's just the
-        # unmodified distilbert tokenizer.
+        # Use multilingual tokenizer for Chinese support
         _INTENT_TOKENIZER = cast(
             PreTrainedTokenizer,
-            AutoTokenizer.from_pretrained("distilbert-base-uncased"),
+            AutoTokenizer.from_pretrained("distilbert-base-multilingual-cased"),
         )
     return _INTENT_TOKENIZER
 

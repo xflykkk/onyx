@@ -3,6 +3,7 @@ import {
   AnswerPiecePacket, 
   DocumentInfoPacket, 
   SubQueryPiece, 
+  SubQuestionDetail,
   ThinkingTokens, 
   StreamingError, 
   ToolCallMetadata, 
@@ -10,17 +11,25 @@ import {
   ChatMessageDetailPacket,
   SearchProgress,
   ChatMessage,
+  StreamingDetail,
+  SubQuestionPiece,
+  AgentAnswerPiece,
+  SubQuestionSearchDoc,
+  StreamStopInfo,
 } from '@/types';
+import { constructSubQuestions } from './subQuestions';
 
 export class StreamingProcessor {
   private currentAnswer = '';
   private currentThinking = '';
   private subQueries: SubQueryPiece[] = [];
+  private subQuestions: SubQuestionDetail[] = []; // 新增：正确的 subQuestions 数组
   private documents: DocumentInfoPacket[] = [];
   private isComplete = false;
   private error: string | null = null;
   private messageId: string;
   private messageDetail: ChatMessageDetailPacket | null = null;
+  private hasFinalSubQuestions = false; // 标记是否已收到最终子问题
 
   constructor(messageId: string) {
     this.messageId = messageId;
@@ -32,9 +41,22 @@ export class StreamingProcessor {
       const packet = JSON.parse(data);
       console.log('📋 Parsed packet:', packet);
       
+      // Debug: Log all packet keys to understand structure
+      console.log('🔍 Packet keys:', Object.keys(packet));
+      console.log('📄 Has top_documents:', Object.hasOwnProperty.call(packet, "top_documents"));
+      console.log('📄 Has context_docs:', Object.hasOwnProperty.call(packet, "context_docs"));
+      console.log('📄 Has documents:', Object.hasOwnProperty.call(packet, "documents"));
+      
       // Determine packet type and process accordingly
       if (packet.answer_piece !== undefined) {
         console.log('📝 Processing answer piece:', packet.answer_piece);
+        
+        // 检查是否是子问题的答案片段
+        if (packet.answer_type === "agent_sub_answer" && packet.level !== undefined && packet.level_question_num !== undefined) {
+          console.log('📝 Processing SubQuestion answer piece');
+          return this.processAgentAnswerPiece(packet);
+        }
+        
         return this.processAnswerPiece(packet as AnswerPiecePacket);
       }
       
@@ -43,9 +65,16 @@ export class StreamingProcessor {
         return this.processDocumentInfo(packet as DocumentInfoPacket);
       }
       
-      if (packet.sub_query !== undefined) {
-        console.log('🔍 Processing sub query');
-        return this.processSubQuery(packet as SubQueryPiece);
+      // Handle SubQuestionPiece - 子问题片段
+      if (Object.hasOwnProperty.call(packet, "sub_question")) {
+        console.log('❓ Processing SubQuestionPiece:', packet.sub_question);
+        return this.processSubQuestionPiece(packet);
+      }
+      
+      // Handle SubQueryPiece - 子查询片段  
+      if (Object.hasOwnProperty.call(packet, "sub_query")) {
+        console.log('🔍 Processing SubQueryPiece:', packet.sub_query);
+        return this.processSubQueryPiece(packet);
       }
       
       if (packet.thinking_content !== undefined) {
@@ -53,7 +82,7 @@ export class StreamingProcessor {
         return this.processThinkingTokens(packet as ThinkingTokens);
       }
       
-      if (packet.error !== undefined) {
+      if (packet.error !== undefined && packet.error !== null) {
         console.log('❌ Processing error');
         return this.processError(packet as StreamingError);
       }
@@ -68,9 +97,61 @@ export class StreamingProcessor {
         return this.processBackendMessage(packet as BackendMessage);
       }
       
-      // Handle ChatMessageDetail packets (contains real message ID)
-      if (packet.message_id !== undefined && packet.message_type !== undefined && packet.time_sent !== undefined) {
-        console.log('🆔 Processing chat message detail');
+      // Handle document packets following onyx/web pattern
+      if (Object.hasOwnProperty.call(packet, "top_documents")) {
+        console.log('📄 Processing document packet (onyx/web style)');
+        console.log('📋 Document packet keys:', Object.keys(packet));
+        
+        // Extract documents directly like onyx/web
+        if (Array.isArray(packet.top_documents)) {
+          packet.top_documents.forEach((doc: any) => {
+            const documentPacket: DocumentInfoPacket = {
+              document_id: doc.document_id,
+              document_name: doc.semantic_identifier,
+              link: doc.link || '',
+              source_type: doc.source_type,
+              semantic_identifier: doc.semantic_identifier,
+              blurb: doc.blurb,
+              boost: doc.boost,
+              score: doc.score,
+              chunk_ind: doc.chunk_ind,
+              match_highlights: doc.match_highlights || [],
+              metadata: doc.metadata || {},
+              updated_at: doc.updated_at,
+              is_internet: doc.is_internet || false,
+            };
+            
+            const exists = this.documents.some(existingDoc => existingDoc.document_id === doc.document_id);
+            if (!exists) {
+              this.documents.push(documentPacket);
+              console.log('📄 Added document (onyx/web style):', documentPacket.semantic_identifier);
+            }
+          });
+        }
+        return packet;
+      }
+
+      // Handle ChatMessageDetail packets (contains real message ID and context docs)
+      // More specific check: must have message_id AND be assistant type AND have complete message structure
+      if (packet.message_id !== undefined && 
+          packet.message_type === 'assistant' && 
+          packet.time_sent !== undefined &&
+          packet.message !== undefined) {
+        console.log('🆔 Processing chat message detail packet');
+        console.log('📋 ChatMessageDetail packet keys:', Object.keys(packet));
+        console.log('📄 Has context_docs:', !!packet.context_docs);
+        console.log('🔍 Has sub_questions:', !!packet.sub_questions);
+        console.log('📋 ChatMessageDetail full packet (truncated):', {
+          message_id: packet.message_id,
+          message_type: packet.message_type,
+          time_sent: packet.time_sent,
+          context_docs_keys: packet.context_docs ? Object.keys(packet.context_docs) : null,
+          context_docs_top_docs_count: packet.context_docs?.top_documents?.length || 0,
+          sub_questions_count: packet.sub_questions?.length || 0,
+          message_length: packet.message?.length || 0
+        });
+        
+        this.extractDocumentsFromContext(packet);
         return this.processChatMessageDetail(packet as ChatMessageDetailPacket);
       }
       
@@ -114,16 +195,131 @@ export class StreamingProcessor {
     return packet;
   }
 
-  private processSubQuery(packet: SubQueryPiece): SubQueryPiece {
-    const existingIndex = this.subQueries.findIndex(sq => sq.sub_query === packet.sub_query);
-    if (existingIndex >= 0) {
-      // Update existing sub-query
-      this.subQueries[existingIndex] = { ...this.subQueries[existingIndex], ...packet };
+  // 处理子问题片段 - 使用 constructSubQuestions 构建
+  private processSubQuestionPiece(packet: any): any {
+    const { sub_question, level = 1, level_question_num = 1, stop_reason, stream_type } = packet;
+    
+    console.log(`❓ Processing SubQuestionPiece: level=${level}, num=${level_question_num}, question="${sub_question}", stop_reason="${stop_reason}"`);
+    
+    // 构建 StreamingDetail 对象
+    let streamingDetail: StreamingDetail;
+    
+    if (stop_reason === 'FINISHED' && stream_type === 'sub_questions') {
+      // 停止信号
+      streamingDetail = {
+        stop_reason,
+        stream_type,
+        level,
+        level_question_num,
+      } as StreamStopInfo;
     } else {
-      // Add new sub-query
-      this.subQueries.push(packet);
+      // 子问题片段
+      streamingDetail = {
+        sub_question,
+        level,
+        level_question_num,
+      } as SubQuestionPiece;
     }
+    
+    // 使用统一的构建函数
+    this.subQuestions = constructSubQuestions(this.subQuestions, streamingDetail);
+    
     return packet;
+  }
+  
+  // 清理子问题文本中的 HTML 标签
+  private cleanSubQuestionText(text: string): string {
+    if (!text) return '';
+    // 移除 <sub-question> 和 </sub-question> 标签
+    let cleaned = text.replace(/<\/?sub-question>/g, '');
+    // 移除任何其他可能出现的 HTML 标签
+    cleaned = cleaned.replace(/<[^>]*>/g, '');
+    // 移除多余的空格并去除首尾空格
+    cleaned = cleaned.replace(/\s+/g, ' ').trim();
+    return cleaned;
+  }
+  
+  // 处理子查询片段 - 使用 constructSubQuestions 构建
+  private processSubQueryPiece(packet: any): any {
+    const { sub_query, level = 1, level_question_num = 1, query_id = 0, stop_reason, stream_type } = packet;
+    
+    console.log(`🔍 Processing SubQueryPiece: level=${level}, num=${level_question_num}, query="${sub_query}", stop_reason="${stop_reason}"`);
+    
+    // 构建 StreamingDetail 对象
+    let streamingDetail: StreamingDetail;
+    
+    if (stop_reason === 'FINISHED' && stream_type === 'sub_queries') {
+      // 停止信号
+      streamingDetail = {
+        stop_reason,
+        stream_type,
+        level,
+        level_question_num,
+      } as StreamStopInfo;
+    } else {
+      // 子查询片段
+      streamingDetail = {
+        sub_query,
+        level,
+        level_question_num,
+        query_id,
+      } as SubQueryPiece;
+    }
+    
+    // 使用统一的构建函数
+    this.subQuestions = constructSubQuestions(this.subQuestions, streamingDetail);
+    
+    // 向后兼容：也更新旧的 subQueries 数组
+    if (!stop_reason) {
+      const existingIndex = this.subQueries.findIndex(sq => 
+        sq.level === level && 
+        sq.level_question_num === level_question_num &&
+        sq.query_id === query_id
+      );
+      
+      if (existingIndex >= 0) {
+        this.subQueries[existingIndex] = { ...this.subQueries[existingIndex], ...packet };
+      } else {
+        this.subQueries.push(packet);
+      }
+    }
+    
+    return packet;
+  }
+  
+  // 清理子查询文本中的标签
+  private cleanSubQueryText(text: string): string {
+    // 移除 <query 1>, <query 2>, </query 1>, </query 2> 等标签
+    let cleaned = text.replace(/<\/?query\s*\d*>/g, '');
+    // 移除多余的空格
+    cleaned = cleaned.trim();
+    return cleaned;
+  }
+
+  // 处理子问题答案片段 - 使用 constructSubQuestions 构建
+  private processAgentAnswerPiece(packet: any): any {
+    const { answer_piece, level, level_question_num, answer_type } = packet;
+    
+    console.log(`📝 Processing AgentAnswerPiece: level=${level}, num=${level_question_num}, piece="${answer_piece?.substring(0, 50)}..."`);
+    
+    // 构建 StreamingDetail 对象
+    const streamingDetail: AgentAnswerPiece = {
+      answer_piece,
+      level,
+      level_question_num,
+      answer_type,
+    };
+    
+    // 使用统一的构建函数
+    this.subQuestions = constructSubQuestions(this.subQuestions, streamingDetail);
+    
+    return packet;
+  }
+
+  private processSubQuery(packet: SubQueryPiece): SubQueryPiece {
+    // 这个方法保留用于向后兼容，但现在优先使用 processSubQueryPiece
+    console.log('🔍 Processing legacy SubQuery:', packet.sub_query);
+    return this.processSubQueryPiece(packet);
   }
 
   private processThinkingTokens(packet: ThinkingTokens): ThinkingTokens {
@@ -145,6 +341,144 @@ export class StreamingProcessor {
   private processBackendMessage(packet: BackendMessage): BackendMessage {
     // Handle backend messages if needed
     return packet;
+  }
+
+  private extractDocumentsFromContext(packet: any): void {
+    // Always prioritize final sub_questions over streaming sub_questions
+    // This ensures we use the complete, final questions rather than streaming fragments
+    if (packet.sub_questions && packet.sub_questions.length > 0) {
+      // Clear existing streaming sub-questions and use final complete ones
+      this.subQuestions = [];
+      this.hasFinalSubQuestions = true; // Mark that we've received final sub_questions
+      console.log('🎯 Found final sub_questions array, clearing all existing subQuestions');
+      console.log('📊 Final sub_questions count:', packet.sub_questions.length);
+    } else {
+      console.log('🧹 No sub_questions in current packet, keeping existing subQuestions');
+    }
+    
+    console.log('🔍 extractDocumentsFromContext called with packet:', {
+      hasContextDocs: !!packet.context_docs,
+      hasTopDocs: !!packet.context_docs?.top_documents,
+      topDocsLength: packet.context_docs?.top_documents?.length || 0,
+      hasSubQuestions: !!packet.sub_questions,
+      subQuestionsLength: packet.sub_questions?.length || 0,
+      // 检查其他可能的字段名
+      hasSubQueries: !!packet.sub_queries,
+      hasQuestions: !!packet.questions,
+      hasAnswers: !!packet.answers,
+      currentDocsCount: this.documents.length,
+      packetKeys: Object.keys(packet),
+      // 打印完整数据包结构
+      packetStructure: JSON.stringify(packet, null, 2)
+    });
+    
+    // Extract documents from context_docs.top_documents
+    if (packet.context_docs?.top_documents) {
+      console.log('📄 Extracting documents from context_docs:', packet.context_docs.top_documents.length);
+      
+      packet.context_docs.top_documents.forEach((doc: any, idx: number) => {
+        console.log(`📋 Processing document ${idx + 1}:`, {
+          document_id: doc.document_id,
+          semantic_identifier: doc.semantic_identifier,
+          link: doc.link,
+          source_type: doc.source_type,
+          hasBlurb: !!doc.blurb,
+          score: doc.score
+        });
+        // Convert to DocumentInfoPacket format
+        const documentPacket: DocumentInfoPacket = {
+          document_id: doc.document_id,
+          document_name: doc.semantic_identifier,
+          link: doc.link || '',
+          source_type: doc.source_type,
+          semantic_identifier: doc.semantic_identifier,
+          blurb: doc.blurb,
+          boost: doc.boost,
+          score: doc.score,
+          chunk_ind: doc.chunk_ind,
+          match_highlights: doc.match_highlights || [],
+          metadata: doc.metadata || {},
+          updated_at: doc.updated_at,
+          is_internet: doc.is_internet || false,
+        };
+        
+        // Add to documents array (avoid duplicates)
+        const exists = this.documents.some(existingDoc => existingDoc.document_id === doc.document_id);
+        if (!exists) {
+          this.documents.push(documentPacket);
+          console.log('📄 Added document:', documentPacket.semantic_identifier);
+        }
+      });
+    }
+
+    // Convert backend sub_questions to frontend subQueries format
+    if (packet.sub_questions && packet.sub_questions.length > 0) {
+      console.log('🎯 Processing FINAL sub_questions from packet (AUTHORITATIVE):', packet.sub_questions.length);
+      console.log('📊 Current temporary subQuestions count before replacement:', this.subQuestions.length);
+      
+      packet.sub_questions.forEach((subQ: any, idx: number) => {
+        console.log(`📋 Processing final sub_question ${idx + 1}:`, {
+          question: subQ.question,
+          answer: subQ.answer?.substring(0, 100) + '...',
+          level: subQ.level,
+          level_question_num: subQ.level_question_num,
+          hasContextDocs: !!subQ.context_docs?.top_documents,
+          contextDocsCount: subQ.context_docs?.top_documents?.length || 0
+        });
+        
+        // Clean the question text from the final sub_questions
+        const cleanedQuestion = this.cleanSubQuestionText(subQ.question || '');
+        
+        // Convert sub_questions to SubQuestionDetail format for frontend compatibility
+        const subQuestionDetail = {
+          level: subQ.level || 0,
+          level_question_num: subQ.level_question_num || 1,
+          question: cleanedQuestion,
+          answer: subQ.answer || '',
+          sub_queries: subQ.sub_queries || null,
+          context_docs: subQ.context_docs || null,
+          is_complete: true
+        };
+        
+        // Always add final sub_questions (they are authoritative)
+        this.subQuestions.push(subQuestionDetail);
+        console.log('✅ Added FINAL sub_question to subQuestions:', cleanedQuestion);
+        
+        // Extract documents from sub-question context_docs
+        if (subQ.context_docs?.top_documents) {
+          console.log('📄 Extracting documents from sub-question context_docs:', subQ.context_docs.top_documents.length);
+          subQ.context_docs.top_documents.forEach((doc: any) => {
+            const documentPacket: DocumentInfoPacket = {
+              document_id: doc.document_id,
+              document_name: doc.semantic_identifier,
+              link: doc.link || '',
+              source_type: doc.source_type,
+              semantic_identifier: doc.semantic_identifier,
+              blurb: doc.blurb,
+              boost: doc.boost,
+              score: doc.score,
+              chunk_ind: doc.chunk_ind,
+              match_highlights: doc.match_highlights || [],
+              metadata: doc.metadata || {},
+              updated_at: doc.updated_at,
+              is_internet: doc.is_internet || false,
+            };
+            
+            const exists = this.documents.some(existingDoc => existingDoc.document_id === doc.document_id);
+            if (!exists) {
+              this.documents.push(documentPacket);
+              console.log('📄 Added document from sub-question:', documentPacket.semantic_identifier);
+            }
+          });
+        }
+      });
+      
+      console.log('✅ FINAL sub_questions processing complete. Total count:', this.subQuestions.length);
+      console.log('📋 Final subQuestions summary:', this.subQuestions.map(sq => ({
+        level_question_num: sq.level_question_num,
+        question: sq.question.substring(0, 50) + '...'
+      })));
+    }
   }
 
   private processChatMessageDetail(packet: ChatMessageDetailPacket): ChatMessageDetailPacket {
@@ -170,12 +504,17 @@ export class StreamingProcessor {
   }
 
   getSearchProgress(): SearchProgress {
+    // When stream is complete, mark all sub-queries as done for progress display
+    const progressSubQueries = this.isComplete 
+      ? this.subQueries.map(sq => ({ ...sq, status: 'done' as const }))
+      : this.subQueries;
+
     // Determine current phase based on the state
     let phase: SearchProgress['phase'] = 'waiting';
     
-    if (this.subQueries.length > 0) {
-      const allDone = this.subQueries.every(sq => sq.status === 'done');
-      const anyInProgress = this.subQueries.some(sq => sq.status === 'in_progress');
+    if (progressSubQueries.length > 0) {
+      const allDone = progressSubQueries.every(sq => sq.status === 'done');
+      const anyInProgress = progressSubQueries.some(sq => sq.status === 'in_progress');
       
       if (anyInProgress) {
         phase = 'sub_queries';
@@ -192,7 +531,8 @@ export class StreamingProcessor {
 
     return {
       phase,
-      subQueries: this.subQueries,
+      subQueries: progressSubQueries,
+      subQuestions: this.subQuestions, // 添加子问题详情
       documents: this.documents,
       thinkingContent: this.currentThinking,
       currentAnswer: this.currentAnswer,
@@ -200,6 +540,7 @@ export class StreamingProcessor {
   }
 
   isStreamComplete(): boolean {
+    console.log('🔍 Checking stream completion:', this.isComplete);
     return this.isComplete;
   }
 
@@ -215,26 +556,76 @@ export class StreamingProcessor {
     this.currentAnswer = '';
     this.currentThinking = '';
     this.subQueries = [];
+    this.subQuestions = [];
     this.documents = [];
     this.isComplete = false;
     this.error = null;
     this.messageDetail = null;
+    this.hasFinalSubQuestions = false;
+  }
+
+  // Clear only sub-queries to remove fragmented data
+  clearSubQueries(): void {
+    this.subQueries = [];
+    this.subQuestions = [];
+    this.hasFinalSubQuestions = false;
   }
 
   // Generate a complete ChatMessage from the current state
   generateChatMessage(): ChatMessage {
-    return {
+    // When generating final message, mark all sub-queries as complete if stream is done
+    const finalSubQueries = this.isComplete 
+      ? this.subQueries.map(sq => ({ ...sq, status: 'done' as const }))
+      : this.subQueries;
+
+    // When generating final message, ensure all sub-questions are complete
+    // Note: Final sub_questions from ChatMessageDetail packets are already complete
+    const finalSubQuestions = this.subQuestions.map(sq => ({ 
+      ...sq, 
+      is_complete: true // Always mark as complete for final message display
+    }));
+
+    // Enhanced debugging for complete message generation
+    console.log('📊 generateChatMessage - Final data status:', {
+      documentsCount: this.documents.length,
+      subQueriesCount: finalSubQueries.length,
+      subQuestionsCount: finalSubQuestions.length,
+      isComplete: this.isComplete,
+      currentAnswerLength: this.currentAnswer.length,
+      // Debug subQuestions structure
+      subQuestionsStructure: finalSubQuestions.map(sq => ({
+        question: sq.question?.substring(0, 50) + '...',
+        hasAnswer: !!sq.answer,
+        level: sq.level,
+        level_question_num: sq.level_question_num,
+        is_complete: sq.is_complete
+      }))
+    });
+
+    const message: ChatMessage = {
       id: this.messageId,
-      type: 'assistant',
+      type: 'assistant' as const,
       content: this.currentAnswer,
       timestamp: new Date(),
       isStreaming: !this.isComplete,
       documents: this.documents,
-      subQueries: this.subQueries,
+      subQueries: finalSubQueries, // 保留兼容性
+      subQuestions: finalSubQuestions, // 新增：正确的字段
       thinkingContent: this.currentThinking,
       error: this.error || undefined,
       citations: this.generateCitations(),
     };
+
+    console.log('📨 Final ChatMessage generated:', {
+      id: message.id,
+      documentsLength: message.documents?.length || 0,
+      subQueriesLength: message.subQueries?.length || 0,
+      subQuestionsLength: message.subQuestions?.length || 0,
+      citationsLength: message.citations?.length || 0,
+      isStreaming: message.isStreaming
+    });
+
+    return message;
   }
 
   private generateCitations() {
@@ -317,10 +708,30 @@ export class TypingEffectProcessor {
 
   updateTarget(newText: string): void {
     console.log('⌨️ TypingEffect: updateTarget called with text:', newText);
-    this.targetText = newText;
     
-    // Smart chunk the text to avoid breaking words or sentences
-    this.chunks = this.smartChunkText(newText);
+    // 如果新文本与当前目标文本相同，跳过处理
+    if (this.targetText === newText) {
+      return;
+    }
+    
+    // 如果新文本是当前文本的延伸（追加内容），只处理新增部分
+    if (newText.startsWith(this.targetText)) {
+      const newPart = newText.substring(this.targetText.length);
+      this.targetText = newText;
+      
+      // 将新部分切分并添加到现有chunks
+      const newChunks = this.smartChunkText(newPart);
+      this.chunks = [...this.chunks, ...newChunks];
+      
+      console.log('⌨️ TypingEffect: Appended new chunks:', newChunks);
+    } else {
+      // 完全新的文本，重新开始
+      this.targetText = newText;
+      this.chunks = this.smartChunkText(newText);
+      this.chunkIndex = 0;
+      
+      console.log('⌨️ TypingEffect: Full text reset');
+    }
     
     if (!this.isActive && this.chunkIndex < this.chunks.length) {
       console.log('⌨️ TypingEffect: Starting typing animation');

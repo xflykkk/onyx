@@ -158,6 +158,7 @@ from onyx.utils.long_term_log import LongTermLogger
 from onyx.utils.telemetry import mt_cloud_telemetry
 from onyx.utils.timing import log_function_time
 from onyx.utils.timing import log_generator_function_time
+from onyx.utils.think_tag_stripper import ThinkTagStripper
 from shared_configs.contextvars import get_current_tenant_id
 
 logger = setup_logger()
@@ -1233,6 +1234,8 @@ def _post_llm_answer_processing(
         yield StreamingError(error="Failed to parse LLM output")
 
 
+
+
 @log_generator_function_time()
 def stream_chat_message(
     new_msg_req: CreateChatMessageRequest,
@@ -1251,12 +1254,17 @@ def stream_chat_message(
             custom_tool_additional_headers=custom_tool_additional_headers,
             is_connected=is_connected,
         )
+        
+        # Create separate strippers for regular and agent messages
+        regular_stripper = ThinkTagStripper()
+        agent_stripper = ThinkTagStripper()
+        
         for obj in objects:
-            # Clean think tags from answer pieces
+            # Clean think tags from answer pieces using stateful processing
             if isinstance(obj, OnyxAnswerPiece) and obj.answer_piece:
-                obj.answer_piece = re.sub(r'<think>.*?</think>', '', obj.answer_piece, flags=re.DOTALL)
+                obj.answer_piece = regular_stripper.process_chunk(obj.answer_piece)
             elif isinstance(obj, AgentAnswerPiece) and obj.answer_piece:
-                obj.answer_piece = re.sub(r'<think>.*?</think>', '', obj.answer_piece, flags=re.DOTALL)
+                obj.answer_piece = agent_stripper.process_chunk(obj.answer_piece)
             
             # Check if this is a QADocsResponse with document results
             if isinstance(obj, QADocsResponse):

@@ -30,6 +30,9 @@ from onyx.configs.app_configs import MOCK_LLM_RESPONSE
 from onyx.configs.chat_configs import QA_TIMEOUT
 from onyx.configs.model_configs import (
     DISABLE_LITELLM_STREAMING,
+    ENABLE_OPIK_MONITORING,
+    OPIK_PROJECT_NAME,
+    OPIK_URL_OVERRIDE,
 )
 from onyx.configs.model_configs import GEN_AI_TEMPERATURE
 from onyx.configs.model_configs import LITELLM_EXTRA_BODY
@@ -48,6 +51,30 @@ logger = setup_logger()
 # If a user configures a different model and it doesn't support all the same
 # parameters like frequency and presence, just ignore them
 litellm.drop_params = True
+
+# Configure Opik monitoring for litellm if enabled
+if ENABLE_OPIK_MONITORING:
+    try:
+        from litellm.integrations.opik.opik import OpikLogger
+        import os
+        
+        # Set environment variables for Opik
+        os.environ["OPIK_URL_OVERRIDE"] = OPIK_URL_OVERRIDE
+        os.environ["OPIK_PROJECT_NAME"] = OPIK_PROJECT_NAME
+        
+        # Add OpikLogger to litellm callbacks
+        if not hasattr(litellm, 'callbacks') or litellm.callbacks is None:
+            litellm.callbacks = []
+        
+        # Check if OpikLogger is already in callbacks to avoid duplicates
+        if not any(isinstance(callback, OpikLogger) for callback in litellm.callbacks):
+            litellm.callbacks.append(OpikLogger())
+        
+        logger.info(f"Opik monitoring enabled for project: {OPIK_PROJECT_NAME}")
+    except ImportError:
+        logger.warning("Opik monitoring is enabled but OpikLogger is not available. Please install the required dependencies.")
+    except Exception as e:
+        logger.error(f"Failed to initialize Opik monitoring: {e}")
 litellm.telemetry = False
 
 _LLM_PROMPT_LONG_TERM_LOG_CATEGORY = "llm_prompt"

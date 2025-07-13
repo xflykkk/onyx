@@ -35,6 +35,10 @@ GENERATIVE_MODEL_ACCESS_CHECK_FREQ = int(
 )  # 1 day
 DISABLE_GENERATIVE_AI = os.environ.get("DISABLE_GENERATIVE_AI", "").lower() == "true"
 
+# Stream logging configuration - for debugging SSE responses
+ENABLE_STREAM_LOGGING = os.environ.get("ENABLE_STREAM_LOGGING", "true").lower() == "true"
+STREAM_LOG_DIR = os.environ.get("STREAM_LOG_DIR", "/tmp/onyx_stream_logs")
+
 # Controls whether to allow admin query history reports with:
 # 1. associated user emails
 # 2. anonymized user emails
@@ -285,7 +289,7 @@ try:
 except ValueError:
     CELERY_BROKER_POOL_LIMIT = CELERY_BROKER_POOL_LIMIT_DEFAULT
 
-CELERY_WORKER_LIGHT_CONCURRENCY_DEFAULT = 24
+CELERY_WORKER_LIGHT_CONCURRENCY_DEFAULT = 24  #默认值 24
 try:
     CELERY_WORKER_LIGHT_CONCURRENCY = int(
         os.environ.get(
