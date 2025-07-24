@@ -70,6 +70,23 @@ def retrieval_preprocessing(
         preset_filters.document_set = [
             document_set.name for document_set in persona.document_sets
         ]
+    
+    # 验证DocumentSet存在性
+    if preset_filters.document_set:
+        from onyx.db.document_set import get_document_set_by_name
+        
+        validated_document_sets = []
+        for doc_set_name in preset_filters.document_set:
+            doc_set = get_document_set_by_name(db_session, doc_set_name)
+            if doc_set:
+                validated_document_sets.append(doc_set_name)
+            else:
+                logger.warning(f"DocumentSet '{doc_set_name}' not found, skipping from search filters")
+        
+        if not validated_document_sets and preset_filters.document_set:
+            logger.error(f"None of the specified DocumentSets exist: {preset_filters.document_set}")
+        
+        preset_filters.document_set = validated_document_sets if validated_document_sets else None
 
     time_filter = preset_filters.time_cutoff
     if time_filter is None and persona:

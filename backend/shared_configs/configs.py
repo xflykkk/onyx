@@ -60,9 +60,9 @@ INDEXING_ONLY = os.environ.get("INDEXING_ONLY", "").lower() == "true"
 LOG_FILE_NAME = os.environ.get("LOG_FILE_NAME") or "onyx"
 
 # Enable generating persistent log files for local dev environments
-DEV_LOGGING_ENABLED = os.environ.get("DEV_LOGGING_ENABLED", "").lower() == "true"
+DEV_LOGGING_ENABLED = os.environ.get("DEV_LOGGING_ENABLED", "true").lower() == "true"
 # notset, debug, info, notice, warning, error, or critical
-LOG_LEVEL = os.environ.get("LOG_LEVEL") or "info"
+LOG_LEVEL = os.environ.get("LOG_LEVEL") or "debug"
 
 # Timeout for API-based embedding models
 # NOTE: does not apply for Google VertexAI, since the python client doesn't
@@ -185,3 +185,7 @@ INDEXING_INFORMATION_CONTENT_CLASSIFICATION_TEMPERATURE = float(
 INDEXING_INFORMATION_CONTENT_CLASSIFICATION_CUTOFF_LENGTH = int(
     os.environ.get("INDEXING_INFORMATION_CONTENT_CLASSIFICATION_CUTOFF_LENGTH") or 10
 )
+
+# 外部鉴权配置
+EXTERNAL_AUTH_ENABLED = os.environ.get("EXTERNAL_AUTH_ENABLED", "true").lower() == "true"
+EXTERNAL_AUTH_SERVICE_URL = os.environ.get("EXTERNAL_AUTH_SERVICE_URL", "")

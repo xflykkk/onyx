@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Dict, List, Any
 
 
-def list_log_files(log_dir="/tmp/onyx_stream_logs") -> List[str]:
+def list_log_files(log_dir="/Users/zhuxiaofeng/Github/onyx/backend/example") -> List[str]:
     """列出所有日志文件"""
     if not os.path.exists(log_dir):
         print(f"❌ 日志目录不存在: {log_dir}")
@@ -183,7 +183,7 @@ def analyze_sub_questions(packets: List[Dict[str, Any]]):
 
 def main():
     """主函数"""
-    log_dir = "/tmp/onyx_stream_logs"
+    log_dir = "/Users/zhuxiaofeng/Github/onyx/backend/example"
     
     # 获取命令行参数
     if len(sys.argv) > 1:

@@ -53,28 +53,29 @@ logger = setup_logger()
 litellm.drop_params = True
 
 # Configure Opik monitoring for litellm if enabled
-if ENABLE_OPIK_MONITORING:
-    try:
-        from litellm.integrations.opik.opik import OpikLogger
-        import os
-        
-        # Set environment variables for Opik
-        os.environ["OPIK_URL_OVERRIDE"] = OPIK_URL_OVERRIDE
-        os.environ["OPIK_PROJECT_NAME"] = OPIK_PROJECT_NAME
-        
-        # Add OpikLogger to litellm callbacks
-        if not hasattr(litellm, 'callbacks') or litellm.callbacks is None:
-            litellm.callbacks = []
-        
-        # Check if OpikLogger is already in callbacks to avoid duplicates
-        if not any(isinstance(callback, OpikLogger) for callback in litellm.callbacks):
-            litellm.callbacks.append(OpikLogger())
-        
-        logger.info(f"Opik monitoring enabled for project: {OPIK_PROJECT_NAME}")
-    except ImportError:
-        logger.warning("Opik monitoring is enabled but OpikLogger is not available. Please install the required dependencies.")
-    except Exception as e:
-        logger.error(f"Failed to initialize Opik monitoring: {e}")
+# Temporarily commented out Opik callback
+# if ENABLE_OPIK_MONITORING:
+#     try:
+#         from litellm.integrations.opik.opik import OpikLogger
+#         import os
+#         
+#         # Set environment variables for Opik
+#         os.environ["OPIK_URL_OVERRIDE"] = OPIK_URL_OVERRIDE
+#         os.environ["OPIK_PROJECT_NAME"] = OPIK_PROJECT_NAME
+#         
+#         # Add OpikLogger to litellm callbacks
+#         if not hasattr(litellm, 'callbacks') or litellm.callbacks is None:
+#             litellm.callbacks = []
+#         
+#         # Check if OpikLogger is already in callbacks to avoid duplicates
+#         if not any(isinstance(callback, OpikLogger) for callback in litellm.callbacks):
+#             litellm.callbacks.append(OpikLogger())
+#         
+#         logger.info(f"Opik monitoring enabled for project: {OPIK_PROJECT_NAME}")
+#     except ImportError:
+#         logger.warning("Opik monitoring is enabled but OpikLogger is not available. Please install the required dependencies.")
+#     except Exception as e:
+#         logger.error(f"Failed to initialize Opik monitoring: {e}")
 litellm.telemetry = False
 
 _LLM_PROMPT_LONG_TERM_LOG_CATEGORY = "llm_prompt"
@@ -518,6 +519,10 @@ class DefaultMultiLLM(LLM):
         if hasattr(choice, "message"):
             output = _convert_litellm_message_to_langchain_message(choice.message)
             if output:
+                # Clean think tags from output content
+                from onyx.utils.think_tag_stripper import ThinkTagStripper
+                if isinstance(output.content, str):
+                    output.content = ThinkTagStripper.clean_think_tags(output.content)
                 self._record_result(prompt, output)
             return output
         else:

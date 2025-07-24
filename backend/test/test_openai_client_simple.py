@@ -1,4 +1,71 @@
 import openai
+import json
+import time
+import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+def make_single_request(client, request_id):
+    """执行单个请求"""
+    print(f"\n--- Request {request_id}/40 ---")
+    
+    request_start_time = time.time()
+    response = client.chat.completions.create(
+        model="openai/qwen3-0-6b",
+        stream=True,
+        messages=[
+            {
+                "role": "user",
+                "content": "Hello, how are you today?"
+            }
+        ],
+        extra_body={             # provider-specific param 向下游透传
+            "enable_thinking": False,
+        },
+        max_tokens=256,
+        temperature=0,
+    )
+
+    full_content = ""
+    raw_response = None
+    for chunk in response:
+        if chunk.choices[0].delta.content is not None:
+            full_content += chunk.choices[0].delta.content
+        raw_response = chunk
+
+    # 打印x-litellm-model-id header
+    if raw_response and hasattr(raw_response, '_raw_response'):
+        raw = raw_response._raw_response
+        if hasattr(raw, 'headers') and "x-litellm-model-id" in raw.headers:
+            print(raw.headers["x-litellm-model-id"])
+
+    request_end_time = time.time()
+    request_duration = request_end_time - request_start_time
+
+    # 截取内容前200个字符
+    truncated_content = full_content[:200] if len(full_content) > 200 else full_content
+    
+    # 打印原始JSON结构（模拟最后一个chunk的结构）
+    print("Response JSON structure:")
+    response_json = {
+        "id": f"chatcmpl-{request_id}",
+        "object": "chat.completion.chunk",
+        "created": 1234567890,
+        "model": "openai/qwen3-30b",
+        "choices": [
+            {
+                "index": 0,
+                "delta": {
+                    "content": truncated_content
+                },
+                "finish_reason": "stop"
+            }
+        ]
+    }
+    print(json.dumps(response_json, indent=2, ensure_ascii=False))
+    print(f"Content (first 200 chars): {truncated_content}")
+    print(f"Request {request_id} duration: {request_duration:.3f}s")
+    
+    return request_duration
 
 def test_openai_client_simple():
     client = openai.OpenAI(
@@ -6,27 +73,51 @@ def test_openai_client_simple():
         base_url="http://172.16.0.120:4000"
     )
 
-    response = client.chat.completions.create(
-        model="openai/qwen3-0-6b",
-        stream=True,
-        messages=[
-            {
-                "role": "user",
-                # "content": "no_think. Please create a list of no more than 3 sub-questions whose answers would help to inform the answer to the initial question.\n\nThe purpose for these sub-questions could be:\n  1) decomposition to isolate individual entities (i.e., 'compare sales of company A and company B' -> ['what are sales for company A', 'what are sales for company B'])\n\n  2) clarification and/or disambiguation of ambiguous terms (i.e., 'what is our success with company A' -> ['what are our sales with company A','what is our market share with company A', 'is company A a reference customer for us', etc.])\n\n  3) if a term or a metric is essentially clear, but it could relate to various aspects of an entity and you are generally familiar with the entity, then you can create sub-questions that are more specific (i.e.,  'what do we do to improve product X' -> 'what do we do to improve scalability of product X', 'what do we do to improve performance of product X', 'what do we do to improve stability of product X', ...)\n\n  4) research individual questions and areas that should really help to ultimately answer the question.\n\n  5) if applicable and useful, consider using sub-questions to gather relevant information that can inform a subsequent set of sub-questions. The answers to your initial sub-questions will be available when generating the next set.\nFor example, if you start with the question, \"Which products have we implemented at Company A, and how does this compare to its competitors?\" you might first create sub-questions like \"What products have we implemented at Company A?\" and \"Who are the competitors of Company A?\"\nThe answer to the second sub-question, such as \"Company B and C are competitors of Company A,\" can then be used to generate more specific sub-questions in the next round, like \"Which products have we implemented at Company B?\" and \"Which products have we implemented at Company C?\"\n\nYou'll be the judge!\n\nImportant:\n\n - Each sub-question should lend itself to be answered by a RAG system. Correspondingly, phrase the question in a way that is amenable to that. An example set of sub-questions based on an initial question could look like this:\n'what can I do to improve the performance of workflow X' -> 'what are the settings affecting performance for workflow X', 'are there complaints and bugs related to workflow X performance', 'what are performance benchmarks for workflow X', ...\n\n - Consequently, again, don't just decompose, but make sure that the sub-questions have the proper form. I.e., no  'I', etc.\n\n - Do not(!) create sub-questions that are clarifying question to the person who asked the question, like making suggestions or asking the user for more information! This is not useful for the actual question-answering process! You need to take the information from the user as it is given to you! For example, should the question be of the type 'why does product X perform poorly for customer A', DO NOT create a sub-question of the type 'what are the settings that customer A uses for product X?'! A valid sub-question could rather be 'which settings for product X have been shown to lead to poor performance for customers?'\n\nTo give you some context, you will see below also some documents that may relate to the question. Please only use this information to learn what the question is approximately asking about, but do not focus on the details to construct the sub-questions! Also, some of the entities, relationships and terms that are in the dataset may not be in these few documents, so DO NOT focus too much on the documents when constructing the sub-questions! Decomposition and disambiguations are most important!\n\nHere are the sample docs to give you some context:\n-------\n# Prompt management\n\n**Source URL:** https://www.comet.com/docs/opik/prompt_engineering/prompt_management#using-the-low-level-sdk\n\n---\n\nOpik provides a prompt library that you can use to manage your prompts. Storing\nprompts in a library allows you to version them, reuse them across projects, and\nmanage them in a central location.\n\nUsing a prompt library does not mean you cant store your prompt in code, we\nhave designed the prompt library to be work seamlessly with your existing prompt\nfiles while providing the benefits of a central prompt library.\n\n## Managing prompts stored in code\n\nThe recommend way to create and manage prompts is using The\n[`Prompt`](https://www.comet.com/docs/opik/python-sdk-reference/library/Prompt.html)\nobject. This will allow you to continue versioning your prompts in code while\nalso getting the benefit of having prompt versions managed in the Opik platform\nso you can more easily keep track of your progress.\n\n###### Prompts stored in code\n\n###### Prompts stored in a file\n\n```\n\n|  |  |\n| --- | --- |\n| 1 | import opik |\n| 2 |  |\n| 3 | # Prompt text stored in a variable |\n| 4 | PROMPT_TEXT = \"Write a summary of the following text: {{text}}\" |\n| 5 |  |\n| 6 | # Create a prompt |\n| 7 | prompt = opik.Prompt( |\n| 8 | name=\"prompt-summary\", |\n| 9 | prompt=PROMPT_TEXT, |\n| 10 | metadata={\"environment\": \"production\"} |\n| 11 | ) |\n| 12 |  |\n| 13 | # Print the prompt text |\n| 14 | print(prompt.prompt) |\n| 15 |  |\n| 16 | # Build the prompt |\n| 17 | print(prompt.format(text=\"Hello, world!\")) |\n\n```\n\nThe prompt will now be stored in the library and versioned:\n\n##### \n\nThe [`Prompt`](https://www.comet.com/docs/opik/python-sdk-reference/library/Prompt.html)\nobject will create a new prompt in the library if this prompt doesnt already exist,\notherwise it will return the existing prompt.\n\nThis means you can safely run the above code multiple times without creating\nduplicate prompts.\n\n## Using the low level SDK\n\nIf you would rather keep prompts in the Opik platform and manually update / download\nthem, you can use the low-level Python SDK to manage you prompts.\n\n### Creating prompts\n\nYou can create a new prompt in the library using both the SDK and the UI:\n\n###### Using the Python SDK\n\n###### Using the UI\n\n```\n\n|  |  |\n| --- | --- |\n| 1 | import opik |\n| 2 |  |\n| 3 | opik.configure() |\n| 4 | client = opik.Opik() |\n| 5 |  |\n| 6 | # Create a new prompt |\n| 7 | prompt = client.create_prompt(name=\"prompt-summary\", prompt=\"Write a summary of the following text: {{text}}\", metadata={\"environment\": \"development\"}) |\n\n```\n\n### Downloading your prompts\n\nOnce a prompt is created in the library, you can download it in code using the [`Opik.get_prompt`](https://www.comet.com/docs/opik/python-sdk-reference/Opik.html#opik.Opik.get_prompt) method:\n\n```\n\n|  |  |\n| --- | --- |\n| 1 | import opik |\n| 2 |  |\n| 3 | opik.configure() |\n| 4 | client = opik.Opik() |\n| 5 |  |\n| 6 | # Get a dataset |\n| 7 | dataset = client.get_or_create_dataset(\"test_dataset\") |\n| 8 |  |\n| 9 | # Get the prompt |\n| 10 | prompt = client.get_prompt(name=\"prompt-summary\") |\n| 11 |  |\n| 12 | # Create the prompt message |\n| 13 | prompt.format(text=\"Hello, world!\") |\n\n```\n\nIf you are not using the SDK, you can download a prompt by using the [REST API](/docs/opik/reference/rest-api/overview).\n\n## Linking prompts to Experiments\n[Experiments](/docs/opik/evaluation/evaluate_your_llm) allow you to evaluate the performance\nof your LLM application on a set of examples. When evaluating different prompts,\nit can be useful to link the evaluation to a specific prompt version. This can\nbe achieved by passing the `prompt` parameter when creating an Experiment:\n\n```\n\n|  |  |\n| --- | --- |\n| 1 | import opik |\n| 2 | from opik.evaluation import evaluate |\n| 3 | from opik.evaluation.metrics import Hallucination |\n| 4 |  |\n| 5 | opik.configure() |\n| 6 | client = opik.Opik() |\n| 7 |  |\n| 8 | # Get a dataset |\n| 9 | dataset = client.get_or_create_dataset(\"test_dataset\") |\n| 10 |  |\n| 11 | # Create a prompt |\n| 12 | prompt = opik.Prompt(name=\"My prompt\", prompt=\"...\") |\n| 13 |  |\n| 14 | # Create an evaluation task |\n| 15 | def evaluation_task(dataset_item): |\n| 16 | return {\"output\": \"llm_response\"} |\n| 17 |  |\n| 18 | # Run the evaluation |\n| 19 | evaluation = evaluate( |\n| 20 | experiment_name=\"My experiment\", |\n| 21 | dataset=dataset, |\n| 22 | task=evaluation_task, |\n| 23 | prompt=prompt, |\n| 24 | ) |\n\n```\n\nThe experiment will now be linked to the prompt allowing you to view all experiments that use a specific prompt:\n-------\n\nAnd here is the initial question to create sub-questions for, so that you have the full context:\n-------\n关于prompt management 讲了什么\n-------\n\n\n\nDo NOT include any text in your answer outside of the list of sub-questions!Please formulate your answer as a newline-separated list of questions like so (and please ONLY ANSWER WITH THIS LIST! Do not add any explanations or other text!):\n\n <sub-question>\n <sub-question>\n <sub-question>\n ...\n\nAnswer:"
-                "content":"/no_think. Translate query to Chinese.\nRULES:  \n1. Translate the text between <<< and >>> into Chinese. \n2.If the query at the end is already in Chinese, simply repeat the ORIGINAL query back to me, EXACTLY as is with no edits.\n3.If the query below is not in Chinese, translate it into Chinese.Query:\n\n<<<how does the Opik prompt library assist in language modeling tasks?>>>"
-            }
-        ],
-        # max_tokens=256,
-        temperature=0,
-        # extra_body={
-        #     "chat_template_kwargs": {"'enable_thinking": False}
-        # }
-    )
+    total_start_time = time.time()
+    request_times = []
 
-    for chunk in response:
-        if chunk.choices[0].delta.content is not None:
-            print(chunk.choices[0].delta.content, end='', flush=True)
-    print()  # 换行
+    # 使用线程池执行40个请求，最多5个并发
+    with ThreadPoolExecutor(max_workers=5) as executor:
+        # 提交40个任务
+        futures = [executor.submit(make_single_request, client, i+1) for i in range(40)]
+        
+        # 收集结果
+        for future in as_completed(futures):
+            try:
+                duration = future.result()
+                request_times.append(duration)
+            except Exception as e:
+                print(f"Request failed: {e}")
+
+    # 计算并打印性能统计
+    total_end_time = time.time()
+    total_duration = total_end_time - total_start_time
+    #Total requests: 40
+    #Concurrent workers: 5
+    #Total time: 19.168s
+    #Average time per request: 2.279s
+    #Min request time: 0.822s
+    #Max request time: 2.714s
+    #Requests per second: 2.09
+
+    #Total requests: 40
+    #Concurrent workers: 5
+    #Total time: 15.409s
+    #Average time per request: 1.820s
+    #Min request time: 0.701s
+    #Max request time: 3.062s
+    #Requests per second: 2.60
+
+    print(f"\n{'='*50}")
+    print("PERFORMANCE SUMMARY")
+    print(f"{'='*50}")
+    print(f"Total requests: 40")
+    print(f"Concurrent workers: 5")
+    print(f"Total time: {total_duration:.3f}s")
+    print(f"Average time per request: {sum(request_times)/len(request_times):.3f}s")
+    print(f"Min request time: {min(request_times):.3f}s")
+    print(f"Max request time: {max(request_times):.3f}s")
+    print(f"Requests per second: {40/total_duration:.2f}")
 
 if __name__ == "__main__":
     test_openai_client_simple()

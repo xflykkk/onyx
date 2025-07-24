@@ -80,7 +80,7 @@ def decompose_orig_question(
         graph_config.behavior.perform_initial_search_decomposition
     )
     # Get the rewritten queries in a defined format
-    model = graph_config.tooling.fast_llm
+    model = graph_config.tooling.primary_llm
 
     history = build_history_prompt(graph_config, question)
 

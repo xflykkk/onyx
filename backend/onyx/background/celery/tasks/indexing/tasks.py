@@ -444,6 +444,9 @@ def check_for_indexing(self: Task, *, tenant_id: str) -> int | None:
             # build a lookup table of existing fences
             # this is just a migration concern and should be unnecessary once
             # lookup tables are rolled out
+            task_logger.info("check_for_indexing - Starting Redis scan for fence lookup table")
+            start_time = time.time()
+            fence_count = 0
             for key_bytes in redis_client_replica.scan_iter(
                 count=SCAN_ITER_COUNT_DEFAULT
             ):
@@ -452,6 +455,9 @@ def check_for_indexing(self: Task, *, tenant_id: str) -> int | None:
                 ):
                     logger.warning(f"Adding {key_bytes} to the lookup table.")
                     redis_client.sadd(OnyxRedisConstants.ACTIVE_FENCES, key_bytes)
+                    fence_count += 1
+            end_time = time.time()
+            task_logger.info(f"check_for_indexing - Redis scan completed: {end_time - start_time:.2f} seconds, processed {fence_count} fences")
 
             redis_client.set(
                 OnyxRedisSignals.BLOCK_BUILD_FENCE_LOOKUP_TABLE,
@@ -487,8 +493,23 @@ def check_for_indexing(self: Task, *, tenant_id: str) -> int | None:
             cc_pairs = fetch_connector_credential_pairs(
                 db_session, include_user_files=True
             )
-            for cc_pair_entry in cc_pairs:
-                cc_pair_ids.append(cc_pair_entry.id)
+            
+            # 注释掉时间过滤器 - Connector 可能需要重新索引历史数据
+            # 时间范围过滤：只处理最近3天创建的 CC Pairs
+            # from datetime import datetime, timedelta, timezone
+            # cutoff_time = datetime.now(timezone.utc) - timedelta(days=3)
+            
+            # filtered_cc_pairs = []
+            # for cc_pair_entry in cc_pairs:
+            #     if cc_pair_entry.connector.time_created >= cutoff_time:
+            #         filtered_cc_pairs.append(cc_pair_entry)
+            #         cc_pair_ids.append(cc_pair_entry.id)
+            
+            # task_logger.info(f"check_for_indexing - Time filtering: {len(cc_pairs)} total -> {len(filtered_cc_pairs)} recent (last 3 days)")
+            
+            # 使用原有逻辑：处理所有符合条件的 CC Pairs
+            filtered_cc_pairs = cc_pairs
+            cc_pair_ids = [cc_pair.id for cc_pair in filtered_cc_pairs]
 
         # mark CC Pairs that are repeatedly failing as in repeated error state
         with get_session_with_current_tenant() as db_session:
@@ -996,6 +1017,8 @@ def process_job_result(
     bind=True,
     acks_late=False,
     track_started=True,
+    max_retries=3,  # Allow up to 3 retries for broken pipe errors
+    default_retry_delay=60,  # Wait 60 seconds before first retry
 )
 def connector_indexing_proxy_task(
     self: Task,
@@ -1041,14 +1064,57 @@ def connector_indexing_proxy_task(
     client = SimpleJobClient()
     task_logger.info(f"submitting connector_indexing_task with tenant_id={tenant_id}")
 
-    job = client.submit(
-        connector_indexing_task,
-        index_attempt_id,
-        cc_pair_id,
-        search_settings_id,
-        global_version.is_ee_version(),
-        tenant_id,
-    )
+    try:
+        job = client.submit(
+            connector_indexing_task,
+            index_attempt_id,
+            cc_pair_id,
+            search_settings_id,
+            global_version.is_ee_version(),
+            tenant_id,
+        )
+    except Exception as e:
+        # Check for Broken pipe errors and OSErrors specifically during job submission
+        error_message = str(e).lower()
+        if ("broken pipe" in error_message or 
+            "errno 32" in error_message or 
+            isinstance(e, (BrokenPipeError, OSError))):
+            
+            # Log the broken pipe error for debugging
+            task_logger.warning(
+                log_builder.build(
+                    "Indexing watchdog - Broken pipe error during job submission",
+                    error=str(e),
+                    attempt=self.request.retries + 1,
+                    max_retries=self.max_retries,
+                )
+            )
+            
+            # Only retry if we haven't exceeded max retries
+            if self.request.retries < self.max_retries:
+                # Exponential backoff: 60s, 120s, 240s
+                countdown = self.default_retry_delay * (2 ** self.request.retries)
+                
+                task_logger.info(
+                    log_builder.build(
+                        "Indexing watchdog - Retrying due to broken pipe during submission",
+                        retry_attempt=self.request.retries + 1,
+                        countdown=f"{countdown}s",
+                    )
+                )
+                
+                # Retry the task
+                raise self.retry(exc=e, countdown=countdown)
+            else:
+                task_logger.error(
+                    log_builder.build(
+                        "Indexing watchdog - Max retries exceeded for broken pipe during submission",
+                        final_attempt=self.request.retries + 1,
+                    )
+                )
+        
+        # Re-raise other exceptions
+        raise
 
     if not job or not job.process:
         result.status = IndexingWatchdogTerminalStatus.SPAWN_FAILED
@@ -1225,6 +1291,45 @@ def connector_indexing_proxy_task(
                 continue
 
     except Exception as e:
+        # Check for Broken pipe errors and retry if possible
+        error_message = str(e).lower()
+        if ("broken pipe" in error_message or 
+            "errno 32" in error_message or 
+            isinstance(e, BrokenPipeError)):
+            
+            # Log the broken pipe error for debugging
+            task_logger.warning(
+                log_builder.build(
+                    "Indexing watchdog - Broken pipe error detected",
+                    error=str(e),
+                    attempt=self.request.retries + 1,
+                    max_retries=self.max_retries,
+                )
+            )
+            
+            # Only retry if we haven't exceeded max retries
+            if self.request.retries < self.max_retries:
+                # Exponential backoff: 60s, 120s, 240s
+                countdown = self.default_retry_delay * (2 ** self.request.retries)
+                
+                task_logger.info(
+                    log_builder.build(
+                        "Indexing watchdog - Retrying due to broken pipe",
+                        retry_attempt=self.request.retries + 1,
+                        countdown=f"{countdown}s",
+                    )
+                )
+                
+                # Retry the task
+                raise self.retry(exc=e, countdown=countdown)
+            else:
+                task_logger.error(
+                    log_builder.build(
+                        "Indexing watchdog - Max retries exceeded for broken pipe error",
+                        final_attempt=self.request.retries + 1,
+                    )
+                )
+        
         result.status = IndexingWatchdogTerminalStatus.WATCHDOG_EXCEPTIONED
         if isinstance(e, ConnectorValidationError):
             # No need to expose full stack trace for validation errors

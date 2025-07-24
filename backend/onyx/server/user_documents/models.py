@@ -112,3 +112,13 @@ class MessageResponse(BaseModel):
 class FileSystemResponse(BaseModel):
     folders: list[UserFolderSnapshot]
     files: list[UserFileSnapshot]
+
+
+class UserFileIndexingStatusResponse(BaseModel):
+    """用户文件索引状态响应模型"""
+    doc_folder_name: str
+    folder_id: int | None = None  # 用于后续 chat 时使用的文件夹 ID
+    crawl_url: str | None = None
+    file_ids: dict[int, bool]  # 文件 ID 和索引状态的映射
+    status: str  # 00:等待处理, 10:处理中, 60:处理成功, 61:处理失败
+    desc: str  # 结果描述

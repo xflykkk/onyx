@@ -4,6 +4,9 @@ from onyx.chat.models import PersonaOverrideConfig
 from onyx.configs.app_configs import DISABLE_GENERATIVE_AI
 from onyx.configs.model_configs import GEN_AI_MODEL_FALLBACK_MAX_TOKENS
 from onyx.configs.model_configs import GEN_AI_TEMPERATURE
+from onyx.configs.model_configs import FAST_GEN_AI_TEMPERATURE
+from onyx.configs.model_configs import LITELLM_EXTRA_BODY_FAST
+from onyx.configs.model_configs import LITELLM_EXTRA_BODY_PRIMARY
 from onyx.db.engine.sql_engine import get_session_with_current_tenant
 from onyx.db.llm import fetch_default_provider
 from onyx.db.llm import fetch_default_vision_provider
@@ -74,24 +77,22 @@ def get_llms_for_persona(
     if not fast_model:
         raise ValueError("No fast model name found")
 
-    def _create_llm(model: str) -> LLM:
-        return get_llm(
-            provider=llm_provider.provider,
-            model=model,
-            deployment_name=llm_provider.deployment_name,
-            api_key=llm_provider.api_key,
-            api_base=llm_provider.api_base,
-            api_version=llm_provider.api_version,
-            custom_config=llm_provider.custom_config,
-            temperature=temperature_override,
+    def _create_llm(model: str, is_fast: bool = False) -> LLM:
+        temp = temperature_override
+        if temp is None:
+            temp = FAST_GEN_AI_TEMPERATURE if is_fast else GEN_AI_TEMPERATURE
+        # Use different extra_body for fast vs primary models
+        extra_body = LITELLM_EXTRA_BODY_FAST if is_fast else LITELLM_EXTRA_BODY_PRIMARY
+        return llm_from_provider(
+            model_name=model,
+            llm_provider=llm_provider,
+            temperature=temp,
             additional_headers=additional_headers,
             long_term_logger=long_term_logger,
-            max_input_tokens=get_max_input_tokens_from_llm_provider(
-                llm_provider=llm_provider, model_name=model
-            ),
+            extra_body=extra_body,
         )
 
-    return _create_llm(model), _create_llm(fast_model)
+    return _create_llm(model), _create_llm(fast_model, is_fast=True)
 
 
 def get_default_llm_with_vision(
@@ -189,6 +190,7 @@ def llm_from_provider(
     temperature: float | None = None,
     additional_headers: dict[str, str] | None = None,
     long_term_logger: LongTermLogger | None = None,
+    extra_body: dict | None = None,
 ) -> LLM:
     return get_llm(
         provider=llm_provider.provider,
@@ -202,6 +204,7 @@ def llm_from_provider(
         temperature=temperature,
         additional_headers=additional_headers,
         long_term_logger=long_term_logger,
+        extra_body=extra_body,
         max_input_tokens=get_max_input_tokens_from_llm_provider(
             llm_provider=llm_provider, model_name=model_name
         ),
@@ -216,6 +219,8 @@ def get_llm_for_contextual_rag(model_name: str, model_provider: str) -> LLM:
     return llm_from_provider(
         model_name=model_name,
         llm_provider=llm_provider,
+        # extra_body=None,  # contextual rag doesn't need enable_thinking
+        extra_body={"enable_thinking": False}
     )
 
 
@@ -243,17 +248,23 @@ def get_default_llms(
     if not fast_model_name:
         raise ValueError("No fast default model name found")
 
-    def _create_llm(model: str) -> LLM:
+    def _create_llm(model: str, is_fast: bool = False) -> LLM:
+        temp = temperature
+        if temp is None:
+            temp = FAST_GEN_AI_TEMPERATURE if is_fast else GEN_AI_TEMPERATURE
+        # Use different extra_body for fast vs primary models
+        extra_body = LITELLM_EXTRA_BODY_FAST if is_fast else LITELLM_EXTRA_BODY_PRIMARY
         return llm_from_provider(
             model_name=model,
             llm_provider=llm_provider,
             timeout=timeout,
-            temperature=temperature,
+            temperature=temp,
             additional_headers=additional_headers,
             long_term_logger=long_term_logger,
+            extra_body=extra_body,
         )
 
-    return _create_llm(model_name), _create_llm(fast_model_name)
+    return _create_llm(model_name), _create_llm(fast_model_name, is_fast=True)
 
 
 def get_llm(
@@ -269,6 +280,7 @@ def get_llm(
     timeout: int | None = None,
     additional_headers: dict[str, str] | None = None,
     long_term_logger: LongTermLogger | None = None,
+    extra_body: dict | None = None,
 ) -> LLM:
     if temperature is None:
         temperature = GEN_AI_TEMPERATURE
@@ -283,6 +295,7 @@ def get_llm(
         temperature=temperature,
         custom_config=custom_config,
         extra_headers=build_llm_extra_headers(additional_headers),
+        extra_body=extra_body,
         model_kwargs=_build_extra_model_kwargs(provider),
         long_term_logger=long_term_logger,
         max_input_tokens=max_input_tokens,

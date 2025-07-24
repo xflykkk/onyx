@@ -123,6 +123,7 @@ from onyx.server.documents.models import GoogleServiceAccountKey
 from onyx.server.documents.models import IndexAttemptSnapshot
 from onyx.server.documents.models import ObjectCreationIdResponse
 from onyx.server.documents.models import RunConnectorRequest
+# 移除 OSS 上传路由的直接导入，避免循环依赖
 from onyx.server.models import StatusResponse
 from onyx.utils.logger import setup_logger
 from onyx.utils.telemetry import create_milestone_and_report
@@ -1288,9 +1289,12 @@ def trigger_indexing_for_cc_pair(
     db_session: Session,
     is_user_file: bool = False,
 ) -> int:
+    logger.info(f"[trigger_indexing_for_cc_pair] Starting - connector_id={connector_id}, credentials={specified_credential_ids}, from_beginning={from_beginning}")
+    
     try:
         possible_credential_ids = get_connector_credential_ids(connector_id, db_session)
     except ValueError as e:
+        logger.error(f"[trigger_indexing_for_cc_pair] Connector {connector_id} not found: {e}")
         raise ValueError(f"Connector by id {connector_id} does not exist: {str(e)}")
 
     if not specified_credential_ids:
@@ -1309,6 +1313,7 @@ def trigger_indexing_for_cc_pair(
         )
 
     # Prevents index attempts for cc pairs that already have an index attempt currently running
+    logger.debug(f"[trigger_indexing_for_cc_pair] Checking for running index attempts...")
     skipped_credentials = [
         credential_id
         for credential_id in credential_ids
@@ -1322,6 +1327,8 @@ def trigger_indexing_for_cc_pair(
             disinclude_finished=True,
         )
     ]
+    if skipped_credentials:
+        logger.info(f"[trigger_indexing_for_cc_pair] Skipping {len(skipped_credentials)} credentials with running index attempts: {skipped_credentials}")
 
     connector_credential_pairs = [
         get_connector_credential_pair(
@@ -1340,11 +1347,12 @@ def trigger_indexing_for_cc_pair(
             if from_beginning:
                 indexing_mode = IndexingMode.REINDEX
 
+            logger.info(f"[trigger_indexing_for_cc_pair] Marking CC pair {cc_pair.id} with trigger mode: {indexing_mode}")
             mark_ccpair_with_indexing_trigger(cc_pair.id, indexing_mode, db_session)
             num_triggers += 1
 
             logger.info(
-                f"connector_run_once - marking cc_pair with indexing trigger: "
+                f"[trigger_indexing_for_cc_pair] Successfully marked - "
                 f"connector={connector_id} "
                 f"cc_pair={cc_pair.id} "
                 f"indexing_trigger={indexing_mode}"
@@ -1352,11 +1360,12 @@ def trigger_indexing_for_cc_pair(
 
     # run the beat task to pick up the triggers immediately
     priority = OnyxCeleryPriority.HIGHEST if is_user_file else OnyxCeleryPriority.HIGH
-    logger.info(f"Sending indexing check task with priority {priority}")
+    logger.info(f"[trigger_indexing_for_cc_pair] Sending indexing check task with priority {priority} to Celery")
     client_app.send_task(
         OnyxCeleryTask.CHECK_FOR_INDEXING,
         priority=priority,
         kwargs={"tenant_id": tenant_id},
     )
 
+    logger.info(f"[trigger_indexing_for_cc_pair] Completed - triggered {num_triggers} indexing tasks")
     return num_triggers

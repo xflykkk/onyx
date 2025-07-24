@@ -58,7 +58,7 @@ or it is not clear that the products are built by Company A). Only state what yo
 ASSISTANT_SYSTEM_PROMPT_DEFAULT = "You are an assistant for question-answering tasks."
 
 ASSISTANT_SYSTEM_PROMPT_PERSONA = f"""
-no_think. You are an assistant for question-answering tasks. Here is more information about you:
+You are an assistant for question-answering tasks. Here is more information about you:
 {SEPARATOR_LINE}
 {{persona_prompt}}
 {SEPARATOR_LINE}
@@ -467,7 +467,7 @@ Queries:
 
 
 DOCUMENT_VERIFICATION_PROMPT = f"""
-/no_think.Determine whether the following document text contains data or information that is potentially relevant \
+no_think.Determine whether the following document text contains data or information that is potentially relevant \
 for a question. It does not have to be fully relevant, but check whether it has some information that \
 would help - possibly in conjunction with other documents - to address the question.
 
@@ -498,7 +498,7 @@ Answer:
 
 # Sub-Question Answer Generation
 SUB_QUESTION_RAG_PROMPT = f"""
-/no_think.Use the context provided below - and only the provided context - to answer the given question. \
+no_think.Use the context provided below - and only the provided context - to answer the given question. \
 (Note that the answer is in service of answering a broader question, given below as 'motivation').
 
 Make sure that you keep all relevant information, specifically as it concerns the ultimate goal. \

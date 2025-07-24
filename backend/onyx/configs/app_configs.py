@@ -18,7 +18,7 @@ from onyx.prompts.image_analysis import DEFAULT_IMAGE_SUMMARIZATION_USER_PROMPT
 # App Configs
 #####
 APP_HOST = "0.0.0.0"
-APP_PORT = 8080
+APP_PORT = 8888
 # API_PREFIX is used to prepend a base path for all API routes
 # generally used if using a reverse proxy which doesn't support stripping the `/api`
 # prefix from requests directed towards the API server. In these cases, set this to `/api`
@@ -37,7 +37,14 @@ DISABLE_GENERATIVE_AI = os.environ.get("DISABLE_GENERATIVE_AI", "").lower() == "
 
 # Stream logging configuration - for debugging SSE responses
 ENABLE_STREAM_LOGGING = os.environ.get("ENABLE_STREAM_LOGGING", "true").lower() == "true"
-STREAM_LOG_DIR = os.environ.get("STREAM_LOG_DIR", "/tmp/onyx_stream_logs")
+STREAM_LOG_DIR = os.environ.get("STREAM_LOG_DIR", "/Users/zhuxiaofeng/Github/onyx/backend/example")
+
+# 七牛云存储默认配置
+QINIU_ACCESS_KEY = os.environ.get("QINIU_ACCESS_KEY") or "7fHbyhKDmKOXN03pk_RzgBvBwy238JK-leVWzkjO"
+QINIU_SECRET_KEY = os.environ.get("QINIU_SECRET_KEY") or "OdQ5TAGwK5hS3e0qH-se6V5ZI0zn_FivVrhz3Lgm"
+QINIU_DEFAULT_BUCKET = os.environ.get("QINIU_DEFAULT_BUCKET") or "deepinsight-qa"
+QINIU_BUCKET_DOMAIN = os.environ.get("QINIU_BUCKET_DOMAIN") or "cdn.deepinsightqa.com"
+QINIU_REGION = os.environ.get("QINIU_REGION", "cn-east-1")
 
 # Controls whether to allow admin query history reports with:
 # 1. associated user emails
@@ -279,6 +286,11 @@ REDIS_SSL_CA_CERTS = os.getenv("REDIS_SSL_CA_CERTS", None)
 
 CELERY_RESULT_EXPIRES = int(os.environ.get("CELERY_RESULT_EXPIRES", 86400))  # seconds
 
+# Redis socket timeout configurations for Celery broker to prevent broken pipe errors
+CELERY_REDIS_SOCKET_TIMEOUT = int(os.environ.get("CELERY_REDIS_SOCKET_TIMEOUT", 300))  # 5 minutes
+CELERY_REDIS_SOCKET_CONNECT_TIMEOUT = int(os.environ.get("CELERY_REDIS_SOCKET_CONNECT_TIMEOUT", 30))  # 30 seconds
+CELERY_REDIS_VISIBILITY_TIMEOUT = int(os.environ.get("CELERY_REDIS_VISIBILITY_TIMEOUT", 7200))  # 2 hours
+
 # https://docs.celeryq.dev/en/stable/userguide/configuration.html#broker-pool-limit
 # Setting to None may help when there is a proxy in the way closing idle connections
 CELERY_BROKER_POOL_LIMIT_DEFAULT = 10
@@ -312,7 +324,7 @@ except ValueError:
         CELERY_WORKER_LIGHT_PREFETCH_MULTIPLIER_DEFAULT
     )
 
-CELERY_WORKER_INDEXING_CONCURRENCY_DEFAULT = 3
+CELERY_WORKER_INDEXING_CONCURRENCY_DEFAULT = 6
 try:
     env_value = os.environ.get("CELERY_WORKER_INDEXING_CONCURRENCY")
     if not env_value:
@@ -606,7 +618,7 @@ LOG_ALL_MODEL_INTERACTIONS = (
 )
 # Logs Onyx only model interactions like prompts, responses, messages etc.
 LOG_DANSWER_MODEL_INTERACTIONS = (
-    os.environ.get("LOG_DANSWER_MODEL_INTERACTIONS", "").lower() == "true"
+    os.environ.get("LOG_DANSWER_MODEL_INTERACTIONS", "true").lower() == "true"
 )
 LOG_INDIVIDUAL_MODEL_TOKENS = (
     os.environ.get("LOG_INDIVIDUAL_MODEL_TOKENS", "").lower() == "true"
@@ -791,3 +803,6 @@ S3_AWS_SECRET_ACCESS_KEY = os.environ.get("S3_AWS_SECRET_ACCESS_KEY") or "minioa
 # Forcing Vespa Language
 # English: en, German:de, etc. See: https://docs.vespa.ai/en/linguistics.html
 VESPA_LANGUAGE_OVERRIDE = os.environ.get("VESPA_LANGUAGE_OVERRIDE")
+
+# 外部鉴权配置导入
+from shared_configs.configs import EXTERNAL_AUTH_ENABLED, EXTERNAL_AUTH_SERVICE_URL

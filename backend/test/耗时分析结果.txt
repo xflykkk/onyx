@@ -1,0 +1,45 @@
+最终分析结果
+
+  基于对CSV文件的深入分析，我现在可以准确回答你的问题：
+
+  具体的LLM节点耗时分析
+
+  针对generate_sub_answer (45.798402秒)的详细分析：
+
+  1. 主要耗时节点：
+    - generate_sub_answer 本身就是最底层的LLM调用节点
+    - 没有更细分的子节点记录LLM API调用
+  2. 具体的LLM调用信息：
+    - 耗时：45.770712秒（占99.94%）
+    - 结果：LLM Timeout Error
+    - 错误信息：A sub-answer could not be constructed and the sub-question will be ignored
+  3. 输入信息：
+    - 子问题：What are the specific requirements for integrating LangGraph into an evaluation system?
+    - 上下文：包含了之前的检索结果和文档验证信息
+  4. 输出信息：
+    - 答案：The question was not answered due to an LLM error.
+    - 引用文档：空数组（因为超时失败）
+
+  6个并行的超时节点
+
+  所有6个generate_sub_answer节点都遇到了同样的问题：
+
+  1. 节点1 (47.56秒)：子问题未明确显示
+  2. 节点2 (46.88秒)：子问题未明确显示
+  3. 节点3 (46.36秒)：Are there alternative frameworks or tools that can be used for evaluation instead of LangGraph?
+  4. 节点4 (45.97秒)：子问题未明确显示
+  5. 节点5 (45.80秒)：What are the specific requirements for integrating LangGraph into an evaluation system?
+  6. 节点6 (45.77秒)：What is the role of LangGraph in the evaluation process?
+
+  根本原因
+
+  - LLM服务问题：所有LLM调用都在45-47秒后超时
+  - 没有token计数：所有相关节点的token_count、prompt_tokens、completion_tokens都为0，说明LLM调用未完成
+  - 统一的超时时间：所有节点都在相似的时间点超时，表明有统一的超时配置
+
+  建议
+
+  1. 调整超时配置：将LLM调用超时时间设置得更长
+  2. 优化子问题复杂度：减少单个子问题的复杂性
+  3. 添加重试机制：在超时后进行重试
+  4. 使用更快的LLM模型：考虑使用响应更快的模型处理子问题

@@ -1,0 +1,11 @@
+<services version="1.0">
+
+    <container id="default" version="1.0">
+        <search>
+            
+            <threadpool threads="6" queue="100" />
+        </search>
+    </container>
+
+    
+</services>

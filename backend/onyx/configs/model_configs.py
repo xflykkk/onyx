@@ -12,12 +12,12 @@ import os
 # The useable models configured as below must be SentenceTransformer compatible
 # NOTE: DO NOT CHANGE SET THESE UNLESS YOU KNOW WHAT YOU ARE DOING
 # IDEALLY, YOU SHOULD CHANGE EMBEDDING MODELS VIA THE UI
-DEFAULT_DOCUMENT_ENCODER_MODEL = "nomic-ai/nomic-embed-text-v1"
+DEFAULT_DOCUMENT_ENCODER_MODEL = "maidalun1020/bce-embedding-base_v1"
 DOCUMENT_ENCODER_MODEL = (
     os.environ.get("DOCUMENT_ENCODER_MODEL") or DEFAULT_DOCUMENT_ENCODER_MODEL
 )
 # If the below is changed, Vespa deployment must also be changed
-DOC_EMBEDDING_DIM = int(os.environ.get("DOC_EMBEDDING_DIM") or 768)
+DOC_EMBEDDING_DIM = int(os.environ.get("DOC_EMBEDDING_DIM") or 1024)
 # Model should be chosen with 512 context size, ideally don't change this
 # If multipass_indexing is enabled, the max context size would be set to
 # DOC_EMBEDDING_CONTEXT_SIZE * LARGE_CHUNK_RATIO
@@ -85,6 +85,7 @@ GEN_AI_HISTORY_CUTOFF = 3000
 # error if the total # of tokens exceeds the max input tokens.
 GEN_AI_SINGLE_USER_MESSAGE_EXPECTED_MAX_TOKENS = 512
 GEN_AI_TEMPERATURE = float(os.environ.get("GEN_AI_TEMPERATURE") or 0)
+FAST_GEN_AI_TEMPERATURE = float(os.environ.get("FAST_GEN_AI_TEMPERATURE") or 0.1)
 
 # should be used if you are using a custom LLM inference provider that doesn't support
 # streaming format AND you are still using the langchain/litellm LLM class
@@ -125,11 +126,30 @@ if _LITELLM_PASS_THROUGH_HEADERS_RAW:
 
 # if specified, will merge the specified JSON with the existing body of the
 # request before sending it to the LLM
-LITELLM_EXTRA_BODY: dict | None = None
+# TODO: 推理模型可以开启
+# LITELLM_EXTRA_BODY: dict | None = {"enable_thinking": False}
+LITELLM_EXTRA_BODY: None = None
 _LITELLM_EXTRA_BODY_RAW = os.environ.get("LITELLM_EXTRA_BODY")
 if _LITELLM_EXTRA_BODY_RAW:
     try:
         LITELLM_EXTRA_BODY = json.loads(_LITELLM_EXTRA_BODY_RAW)
+    except Exception:
+        pass
+
+# Separate extra_body configurations for different model types
+LITELLM_EXTRA_BODY_FAST: dict | None = {"enable_thinking": False}
+_LITELLM_EXTRA_BODY_FAST_RAW = os.environ.get("LITELLM_EXTRA_BODY_FAST")
+if _LITELLM_EXTRA_BODY_FAST_RAW:
+    try:
+        LITELLM_EXTRA_BODY_FAST = json.loads(_LITELLM_EXTRA_BODY_FAST_RAW)
+    except Exception:
+        pass
+
+LITELLM_EXTRA_BODY_PRIMARY: dict | None = None
+_LITELLM_EXTRA_BODY_PRIMARY_RAW = os.environ.get("LITELLM_EXTRA_BODY_PRIMARY")
+if _LITELLM_EXTRA_BODY_PRIMARY_RAW:
+    try:
+        LITELLM_EXTRA_BODY_PRIMARY = json.loads(_LITELLM_EXTRA_BODY_PRIMARY_RAW)
     except Exception:
         pass
 

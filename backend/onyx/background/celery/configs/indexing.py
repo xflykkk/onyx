@@ -26,4 +26,4 @@ task_acks_late = shared_config.task_acks_late
 
 worker_concurrency = CELERY_WORKER_INDEXING_CONCURRENCY
 worker_pool = "threads"
-worker_prefetch_multiplier = 1
+worker_prefetch_multiplier = 2

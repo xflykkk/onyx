@@ -21,6 +21,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from onyx.auth.users import current_chat_accessible_user
+from onyx.custom_auth.dependencies import current_custom_chat_user
 from onyx.auth.users import current_user
 from onyx.chat.chat_utils import create_chat_chain
 from onyx.chat.chat_utils import extract_headers
@@ -405,7 +406,7 @@ async def is_connected(request: Request) -> Callable[[], bool]:
 def handle_new_chat_message(
     chat_message_req: CreateChatMessageRequest,
     request: Request,
-    user: User | None = Depends(current_chat_accessible_user),
+    user: User | None = Depends(current_custom_chat_user),
     _rate_limit_check: None = Depends(check_token_rate_limits),
     is_connected_func: Callable[[], bool] = Depends(is_connected),
 ) -> StreamingResponse:

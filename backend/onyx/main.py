@@ -87,6 +87,7 @@ from onyx.server.manage.llm.api import basic_router as llm_router
 from onyx.server.manage.search_settings import router as search_settings_router
 from onyx.server.manage.slack_bot import router as slack_bot_management_router
 from onyx.server.manage.users import router as user_router
+from onyx.custom_auth.registration_api import router as external_auth_router
 from onyx.server.middleware.latency_logging import add_latency_logging_middleware
 from onyx.server.middleware.rate_limiting import close_auth_limiter
 from onyx.server.middleware.rate_limiting import get_auth_rate_limiters
@@ -106,6 +107,9 @@ from onyx.server.token_rate_limits.api import (
     router as token_rate_limit_settings_router,
 )
 from onyx.server.user_documents.api import router as user_documents_router
+from onyx.server.stream_logs.api import router as stream_logs_router
+from onyx.server.celery_proxy.api import router as celery_proxy_router
+from onyx.server.documents.doc_folder import router as doc_folder_router
 from onyx.server.utils import BasicAuthenticationError
 from onyx.setup import setup_multitenant_onyx
 from onyx.setup import setup_onyx
@@ -332,6 +336,7 @@ def get_application(lifespan_override: Lifespan | None = None) -> FastAPI:
     include_router_with_global_prefix_prepended(application, query_router)
     include_router_with_global_prefix_prepended(application, document_router)
     include_router_with_global_prefix_prepended(application, user_router)
+    include_router_with_global_prefix_prepended(application, external_auth_router)
     include_router_with_global_prefix_prepended(application, admin_query_router)
     include_router_with_global_prefix_prepended(application, admin_router)
     include_router_with_global_prefix_prepended(application, connector_router)
@@ -340,6 +345,10 @@ def get_application(lifespan_override: Lifespan | None = None) -> FastAPI:
     include_router_with_global_prefix_prepended(application, admin_input_prompt_router)
     include_router_with_global_prefix_prepended(application, cc_pair_router)
     include_router_with_global_prefix_prepended(application, user_documents_router)
+    include_router_with_global_prefix_prepended(application, stream_logs_router)
+    include_router_with_global_prefix_prepended(application, doc_folder_router)
+    # Celery proxy router without global prefix to match /api/celery/* requests
+    application.include_router(celery_proxy_router)
     include_router_with_global_prefix_prepended(application, folder_router)
     include_router_with_global_prefix_prepended(application, document_set_router)
     include_router_with_global_prefix_prepended(application, search_settings_router)

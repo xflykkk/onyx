@@ -20,8 +20,13 @@ def start_flower_delayed(cmd_flower, delay_seconds=40):
     print(f"等待 {delay_seconds} 秒后启动 Flower...")
     time.sleep(delay_seconds)
     
+    # Set environment variable for unauthenticated API access
+    import os
+    env = os.environ.copy()
+    env['FLOWER_UNAUTHENTICATED_API'] = 'true'
+    
     flower_process = subprocess.Popen(
-        cmd_flower, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True
+        cmd_flower, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, env=env
     )
     print("🌸 Flower 已启动，访问 http://localhost:5001")
     
@@ -79,8 +84,8 @@ def run_jobs() -> None:
         "onyx.background.celery.versioned_apps.indexing",
         "worker",
         "--pool=threads",
-        "--concurrency=1",
-        "--prefetch-multiplier=1",
+        "--concurrency=6",
+        "--prefetch-multiplier=2",
         "--loglevel=INFO",
         "--hostname=indexing@%n",
         "--queues=connector_indexing",
@@ -92,7 +97,7 @@ def run_jobs() -> None:
         "onyx.background.celery.versioned_apps.indexing",
         "worker",
         "--pool=threads",
-        "--concurrency=1",
+        "--concurrency=3",
         "--prefetch-multiplier=1",
         "--loglevel=INFO",
         "--hostname=user_files_indexing@%n",
@@ -104,7 +109,7 @@ def run_jobs() -> None:
         "-A",
         "onyx.background.celery.versioned_apps.monitoring",
         "worker",
-        "--pool=threads",
+        "--pool=solo",
         "--concurrency=1",
         "--prefetch-multiplier=1",
         "--loglevel=INFO",

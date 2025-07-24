@@ -1,0 +1,197 @@
+{
+  "folder_name": "crawl_results/api_test_1753246600",
+  "tests": {
+    "initial_status": {
+      "doc_folder_name": "crawl_results/api_test_1753246600",
+      "folder_id": null,
+      "crawl_url": null,
+      "file_ids": {},
+      "status": "00",
+      "desc": "文件夹未找到或未开始处理",
+      "folder_stats": {
+        "connector_found": false,
+        "file_count": 0
+      }
+    },
+    "file_upload": {
+      "success": true
+    },
+    "upload_notification": {
+      "doc_folder_name": "crawl_results/api_test_1753246600",
+      "crawl_url": "https://example.com/test",
+      "success": true,
+      "message": "Successfully triggered indexing for 1 files",
+      "connector_id": 10711,
+      "cc_pair_id": 10718,
+      "indexed_files_count": 1,
+      "folder_id": 114,
+      "document_set_id": null,
+      "document_set_name": null,
+      "persona_id": null,
+      "persona_name": null
+    },
+    "after_notification_status": {
+      "doc_folder_name": "crawl_results/api_test_1753246600",
+      "folder_id": 114,
+      "crawl_url": null,
+      "file_ids": {
+        "文件1.待处理": false
+      },
+      "status": "10",
+      "desc": "等待开始索引",
+      "folder_stats": {
+        "connector_found": true,
+        "cc_pair_found": true,
+        "file_count": 1,
+        "indexed_document_count": 0,
+        "indexing_progress": "0/1",
+        "connector_id": 10711,
+        "cc_pair_id": 10718,
+        "last_successful_index_time": null,
+        "status": "SCHEDULED",
+        "bucket_name": "deepinsight-qa",
+        "folder_prefix": "crawl_results/api_test_1753246600"
+      }
+    },
+    "status_check_1": {
+      "doc_folder_name": "crawl_results/api_test_1753246600",
+      "folder_id": 114,
+      "crawl_url": null,
+      "file_ids": {
+        "文件1.待处理": false
+      },
+      "status": "10",
+      "desc": "等待开始索引",
+      "folder_stats": {
+        "connector_found": true,
+        "cc_pair_found": true,
+        "file_count": 1,
+        "indexed_document_count": 0,
+        "indexing_progress": "0/1",
+        "connector_id": 10711,
+        "cc_pair_id": 10718,
+        "last_successful_index_time": null,
+        "status": "SCHEDULED",
+        "bucket_name": "deepinsight-qa",
+        "folder_prefix": "crawl_results/api_test_1753246600"
+      }
+    },
+    "status_check_2": {
+      "doc_folder_name": "crawl_results/api_test_1753246600",
+      "folder_id": 114,
+      "crawl_url": null,
+      "file_ids": {
+        "文件1.待处理": false
+      },
+      "status": "10",
+      "desc": "等待开始索引",
+      "folder_stats": {
+        "connector_found": true,
+        "cc_pair_found": true,
+        "file_count": 1,
+        "indexed_document_count": 0,
+        "indexing_progress": "0/1",
+        "connector_id": 10711,
+        "cc_pair_id": 10718,
+        "last_successful_index_time": null,
+        "status": "SCHEDULED",
+        "bucket_name": "deepinsight-qa",
+        "folder_prefix": "crawl_results/api_test_1753246600"
+      }
+    },
+    "status_check_3": {
+      "doc_folder_name": "crawl_results/api_test_1753246600",
+      "folder_id": 114,
+      "crawl_url": null,
+      "file_ids": {
+        "文件1.待处理": false
+      },
+      "status": "10",
+      "desc": "等待开始索引",
+      "folder_stats": {
+        "connector_found": true,
+        "cc_pair_found": true,
+        "file_count": 1,
+        "indexed_document_count": 0,
+        "indexing_progress": "0/1",
+        "connector_id": 10711,
+        "cc_pair_id": 10718,
+        "last_successful_index_time": null,
+        "status": "SCHEDULED",
+        "bucket_name": "deepinsight-qa",
+        "folder_prefix": "crawl_results/api_test_1753246600"
+      }
+    },
+    "status_check_4": {
+      "doc_folder_name": "crawl_results/api_test_1753246600",
+      "folder_id": 114,
+      "crawl_url": null,
+      "file_ids": {
+        "文件1.待处理": false
+      },
+      "status": "10",
+      "desc": "等待开始索引",
+      "folder_stats": {
+        "connector_found": true,
+        "cc_pair_found": true,
+        "file_count": 1,
+        "indexed_document_count": 0,
+        "indexing_progress": "0/1",
+        "connector_id": 10711,
+        "cc_pair_id": 10718,
+        "last_successful_index_time": null,
+        "status": "SCHEDULED",
+        "bucket_name": "deepinsight-qa",
+        "folder_prefix": "crawl_results/api_test_1753246600"
+      }
+    },
+    "status_check_5": {
+      "doc_folder_name": "crawl_results/api_test_1753246600",
+      "folder_id": 114,
+      "crawl_url": null,
+      "file_ids": {
+        "文件1.待处理": false
+      },
+      "status": "10",
+      "desc": "等待开始索引",
+      "folder_stats": {
+        "connector_found": true,
+        "cc_pair_found": true,
+        "file_count": 1,
+        "indexed_document_count": 0,
+        "indexing_progress": "0/1",
+        "connector_id": 10711,
+        "cc_pair_id": 10718,
+        "last_successful_index_time": null,
+        "status": "SCHEDULED",
+        "bucket_name": "deepinsight-qa",
+        "folder_prefix": "crawl_results/api_test_1753246600"
+      }
+    },
+    "status_check_6": {
+      "doc_folder_name": "crawl_results/api_test_1753246600",
+      "folder_id": 114,
+      "crawl_url": null,
+      "file_ids": {
+        "文件1.待处理": false
+      },
+      "status": "10",
+      "desc": "等待开始索引",
+      "folder_stats": {
+        "connector_found": true,
+        "cc_pair_found": true,
+        "file_count": 1,
+        "indexed_document_count": 0,
+        "indexing_progress": "0/1",
+        "connector_id": 10711,
+        "cc_pair_id": 10718,
+        "last_successful_index_time": null,
+        "status": "SCHEDULED",
+        "bucket_name": "deepinsight-qa",
+        "folder_prefix": "crawl_results/api_test_1753246600"
+      }
+    }
+  },
+  "overall_success": true,
+  "success_rate": "2/2"
+}

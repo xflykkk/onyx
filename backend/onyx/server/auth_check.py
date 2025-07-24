@@ -14,6 +14,12 @@ from onyx.configs.app_configs import APP_API_PREFIX
 from onyx.server.onyx_api.ingestion import api_key_dep
 from onyx.utils.variable_functionality import fetch_ee_implementation_or_noop
 
+# Import custom auth dependency
+try:
+    from onyx.custom_auth.dependencies import current_custom_chat_user
+except ImportError:
+    current_custom_chat_user = None
+
 
 PUBLIC_ENDPOINT_SPECS = [
     # built-in documentation functions
@@ -50,6 +56,16 @@ PUBLIC_ENDPOINT_SPECS = [
     # anonymous user on cloud
     ("/tenants/anonymous-user", {"POST"}),
     ("/metrics", {"GET"}),  # added by prometheus_fastapi_instrumentator
+    # stream logs endpoints - no auth required for debugging
+    ("/stream-logs/latest", {"GET"}),
+    ("/stream-logs/list", {"GET"}),
+    ("/stream-logs/summary/stats", {"GET"}),
+    ("/stream-logs/{filename}", {"GET"}),
+    ("/stream-logs/{filename}/raw", {"GET"}),
+    # celery monitoring endpoints - no auth required for monitoring
+    ("/api/celery/pending", {"GET"}),
+    ("/api/celery/active", {"GET"}),
+    ("/api/celery/workers", {"GET"}),
 ]
 
 
@@ -117,6 +133,7 @@ def check_router_auth(
                     or depends_fn == current_chat_accessible_user
                     or depends_fn == control_plane_dep
                     or depends_fn == current_cloud_superuser
+                    or (current_custom_chat_user and depends_fn == current_custom_chat_user)
                 ):
                     found_auth = True
                     break

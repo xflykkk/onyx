@@ -1,0 +1,825 @@
+[
+  {
+    "step_name": "LangGraph",
+    "time_taken": 83.365491,
+    "result": "success",
+    "full_message": "Run: LangGraph - Status: success",
+    "run_type": "chain",
+    "inputs": "{\"input\": {\"log_messages\": []}}",
+    "outputs": "{\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\", \"2025-07-15 19:57:21.321522 -- main - extract entities terms -- Time taken: 0:00:00.000016 --"
+  },
+  {
+    "step_name": "generate_initial_answer_subgraph",
+    "time_taken": 75.885443,
+    "result": "success",
+    "full_message": "Run: generate_initial_answer_subgraph - Status: success",
+    "run_type": "chain",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\"], \"exploratory_search_results\": [{\"center_chunk\": {\"chunk_id\": 2, \"blurb\": \"| 31 | r",
+    "outputs": "{\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\", \"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\", \"202"
+  },
+  {
+    "step_name": "LangGraph",
+    "time_taken": 75.831989,
+    "result": "success",
+    "full_message": "Run: LangGraph - Status: success",
+    "run_type": "chain",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\"], \"exploratory_search_results\": [{\"center_chunk\": {\"chunk_id\": 2, \"blurb\": \"| 31 | r",
+    "outputs": "{\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\", \"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\", \"202"
+  },
+  {
+    "step_name": "generate_sub_answers_subgraph",
+    "time_taken": 72.183255,
+    "result": "success",
+    "full_message": "Run: generate_sub_answers_subgraph - Status: success",
+    "run_type": "chain",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\"], \"exploratory_search_results\": [{\"center_chunk\": {\"chunk_id\": 2, \"blurb\": \"| 31 | r",
+    "outputs": "{\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\", \"2025-07-15 19:57:21.331472 -- initial - generate sub answers - decompose original question -"
+  },
+  {
+    "step_name": "LangGraph",
+    "time_taken": 72.13994,
+    "result": "success",
+    "full_message": "Run: LangGraph - Status: success",
+    "run_type": "chain",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\"], \"exploratory_search_results\": [{\"center_chunk\": {\"chunk_id\": 2, \"blurb\": \"| 31 | r",
+    "outputs": "{\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\", \"2025-07-15 19:57:21.331472 -- initial - generate sub answers - decompose original question -"
+  },
+  {
+    "step_name": "answer_sub_question_subgraphs",
+    "time_taken": 69.538261,
+    "result": "success",
+    "full_message": "Run: answer_sub_question_subgraphs - Status: success",
+    "run_type": "chain",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\"], \"question\": \"<sub-question>\", \"question_id\": \"0_3\"}}",
+    "outputs": "{\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\", \"2025-07-15 19:57:23.914018 -- Sending to expanded retrieval\", \"2025-07-15 19:57:23.965825 -- "
+  },
+  {
+    "step_name": "answer_sub_question_subgraphs",
+    "time_taken": 69.536224,
+    "result": "success",
+    "full_message": "Run: answer_sub_question_subgraphs - Status: success",
+    "run_type": "chain",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\"], \"question\": \"What is the role of LangGraph in the evaluation process?\", \"question_i",
+    "outputs": "{\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\", \"2025-07-15 19:57:23.921284 -- Sending to expanded retrieval\", \"2025-07-15 19:57:23.980006 -- "
+  },
+  {
+    "step_name": "answer_sub_question_subgraphs",
+    "time_taken": 69.532162,
+    "result": "success",
+    "full_message": "Run: answer_sub_question_subgraphs - Status: success",
+    "run_type": "chain",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\"], \"question\": \"What are the specific requirements for integrating LangGraph into an e",
+    "outputs": "{\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\", \"2025-07-15 19:57:23.919573 -- Sending to expanded retrieval\", \"2025-07-15 19:57:23.977967 -- "
+  },
+  {
+    "step_name": "answer_sub_question_subgraphs",
+    "time_taken": 69.531017,
+    "result": "success",
+    "full_message": "Run: answer_sub_question_subgraphs - Status: success",
+    "run_type": "chain",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\"], \"question\": \"<sub-question>\", \"question_id\": \"0_5\"}}",
+    "outputs": "{\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\", \"2025-07-15 19:57:23.918113 -- Sending to expanded retrieval\", \"2025-07-15 19:57:23.975789 -- "
+  },
+  {
+    "step_name": "answer_sub_question_subgraphs",
+    "time_taken": 69.507528,
+    "result": "success",
+    "full_message": "Run: answer_sub_question_subgraphs - Status: success",
+    "run_type": "chain",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\"], \"question\": \"Are there alternative frameworks or tools that can be used for evaluat",
+    "outputs": "{\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\", \"2025-07-15 19:57:23.916455 -- Sending to expanded retrieval\", \"2025-07-15 19:57:23.970651 -- "
+  },
+  {
+    "step_name": "LangGraph",
+    "time_taken": 69.505263,
+    "result": "success",
+    "full_message": "Run: LangGraph - Status: success",
+    "run_type": "chain",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\"], \"question\": \"<sub-question>\", \"question_id\": \"0_3\"}}",
+    "outputs": "{\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\", \"2025-07-15 19:57:23.914018 -- Sending to expanded retrieval\", \"2025-07-15 19:57:23.965825 -- "
+  },
+  {
+    "step_name": "LangGraph",
+    "time_taken": 69.503054,
+    "result": "success",
+    "full_message": "Run: LangGraph - Status: success",
+    "run_type": "chain",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\"], \"question\": \"What are the specific requirements for integrating LangGraph into an e",
+    "outputs": "{\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\", \"2025-07-15 19:57:23.919573 -- Sending to expanded retrieval\", \"2025-07-15 19:57:23.977967 -- "
+  },
+  {
+    "step_name": "LangGraph",
+    "time_taken": 69.499364,
+    "result": "success",
+    "full_message": "Run: LangGraph - Status: success",
+    "run_type": "chain",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\"], \"question\": \"What is the role of LangGraph in the evaluation process?\", \"question_i",
+    "outputs": "{\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\", \"2025-07-15 19:57:23.921284 -- Sending to expanded retrieval\", \"2025-07-15 19:57:23.980006 -- "
+  },
+  {
+    "step_name": "LangGraph",
+    "time_taken": 69.499209,
+    "result": "success",
+    "full_message": "Run: LangGraph - Status: success",
+    "run_type": "chain",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\"], \"question\": \"<sub-question>\", \"question_id\": \"0_5\"}}",
+    "outputs": "{\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\", \"2025-07-15 19:57:23.918113 -- Sending to expanded retrieval\", \"2025-07-15 19:57:23.975789 -- "
+  },
+  {
+    "step_name": "answer_sub_question_subgraphs",
+    "time_taken": 69.473153,
+    "result": "success",
+    "full_message": "Run: answer_sub_question_subgraphs - Status: success",
+    "run_type": "chain",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\"], \"question\": \"<sub-question>\", \"question_id\": \"0_1\"}}",
+    "outputs": "{\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\", \"2025-07-15 19:57:23.910927 -- Sending to expanded retrieval\", \"2025-07-15 19:57:23.960029 -- "
+  },
+  {
+    "step_name": "LangGraph",
+    "time_taken": 69.46933,
+    "result": "success",
+    "full_message": "Run: LangGraph - Status: success",
+    "run_type": "chain",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\"], \"question\": \"Are there alternative frameworks or tools that can be used for evaluat",
+    "outputs": "{\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\", \"2025-07-15 19:57:23.916455 -- Sending to expanded retrieval\", \"2025-07-15 19:57:23.970651 -- "
+  },
+  {
+    "step_name": "LangGraph",
+    "time_taken": 69.452997,
+    "result": "success",
+    "full_message": "Run: LangGraph - Status: success",
+    "run_type": "chain",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\"], \"question\": \"<sub-question>\", \"question_id\": \"0_1\"}}",
+    "outputs": "{\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\", \"2025-07-15 19:57:23.910927 -- Sending to expanded retrieval\", \"2025-07-15 19:57:23.960029 -- "
+  },
+  {
+    "step_name": "generate_sub_answer",
+    "time_taken": 47.561003,
+    "result": "success",
+    "full_message": "Run: generate_sub_answer - Status: success",
+    "run_type": "chain",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\", \"2025-07-15 19:57:23.910927 -- Sending to expanded retrieval\", \"2025-07-15 19:57:23.",
+    "outputs": "{\"output\": {\"log_messages\": [\"2025-07-15 19:57:33.763923 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:47.536961 -- Result: LLM Timeout Error. A sub-answer coul"
+  },
+  {
+    "step_name": "Time taken: 0:00:47.536961",
+    "time_taken": 47.536961,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:33.763923 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:47.536961 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"input\": {\"log_messages\": []}}",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:47.536961",
+    "time_taken": 47.536961,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:33.763923 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:47.536961 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\"], \"exploratory_search_results\": [{\"center_chunk\": {\"chunk_id\": 2, \"blurb\": \"| 31 | r",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:47.536961",
+    "time_taken": 47.536961,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:33.763923 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:47.536961 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\"], \"exploratory_search_results\": [{\"center_chunk\": {\"chunk_id\": 2, \"blurb\": \"| 31 | r",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:47.536961",
+    "time_taken": 47.536961,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:33.763923 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:47.536961 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\"], \"exploratory_search_results\": [{\"center_chunk\": {\"chunk_id\": 2, \"blurb\": \"| 31 | r",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:47.536961",
+    "time_taken": 47.536961,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:33.763923 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:47.536961 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\"], \"exploratory_search_results\": [{\"center_chunk\": {\"chunk_id\": 2, \"blurb\": \"| 31 | r",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:47.536961",
+    "time_taken": 47.536961,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:33.763923 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:47.536961 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\"], \"question\": \"<sub-question>\", \"question_id\": \"0_1\"}}",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:47.536961",
+    "time_taken": 47.536961,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:33.763923 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:47.536961 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\"], \"question\": \"<sub-question>\", \"question_id\": \"0_1\"}}",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:47.536961",
+    "time_taken": 47.536961,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:33.763923 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:47.536961 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\", \"2025-07-15 19:57:23.910927 -- Sending to expanded retrieval\", \"2025-07-15 19:57:23.960029 -- ",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:47.536961",
+    "time_taken": 47.536961,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:33.763923 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:47.536961 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\", \"2025-07-15 19:57:23.910927 -- Sending to expanded retrieval\", \"2025-07-15 19:57:23.960029 -- ",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:47.536961",
+    "time_taken": 47.536961,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:33.763923 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:47.536961 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\", \"2025-07-15 19:57:21.331472 -- initial - generate sub answers - decompose original question -",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:47.536961",
+    "time_taken": 47.536961,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:33.763923 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:47.536961 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\", \"2025-07-15 19:57:21.331472 -- initial - generate sub answers - decompose original question -",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:47.536961",
+    "time_taken": 47.536961,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:33.763923 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:47.536961 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\", \"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\", \"202",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:47.536961",
+    "time_taken": 47.536961,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:33.763923 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:47.536961 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\", \"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\", \"202",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "generate_sub_answer",
+    "time_taken": 46.878185,
+    "result": "success",
+    "full_message": "Run: generate_sub_answer - Status: success",
+    "run_type": "chain",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\", \"2025-07-15 19:57:23.918113 -- Sending to expanded retrieval\", \"2025-07-15 19:57:23.",
+    "outputs": "{\"output\": {\"log_messages\": [\"2025-07-15 19:57:34.456802 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:46.854936 -- Result: LLM Timeout Error. A sub-answer coul"
+  },
+  {
+    "step_name": "Time taken: 0:00:46.854936",
+    "time_taken": 46.854936,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:34.456802 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:46.854936 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"input\": {\"log_messages\": []}}",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:46.854936",
+    "time_taken": 46.854936,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:34.456802 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:46.854936 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\"], \"exploratory_search_results\": [{\"center_chunk\": {\"chunk_id\": 2, \"blurb\": \"| 31 | r",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:46.854936",
+    "time_taken": 46.854936,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:34.456802 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:46.854936 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\"], \"exploratory_search_results\": [{\"center_chunk\": {\"chunk_id\": 2, \"blurb\": \"| 31 | r",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:46.854936",
+    "time_taken": 46.854936,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:34.456802 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:46.854936 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\"], \"exploratory_search_results\": [{\"center_chunk\": {\"chunk_id\": 2, \"blurb\": \"| 31 | r",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:46.854936",
+    "time_taken": 46.854936,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:34.456802 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:46.854936 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\"], \"exploratory_search_results\": [{\"center_chunk\": {\"chunk_id\": 2, \"blurb\": \"| 31 | r",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:46.854936",
+    "time_taken": 46.854936,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:34.456802 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:46.854936 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\"], \"question\": \"<sub-question>\", \"question_id\": \"0_5\"}}",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:46.854936",
+    "time_taken": 46.854936,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:34.456802 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:46.854936 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\"], \"question\": \"<sub-question>\", \"question_id\": \"0_5\"}}",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:46.854936",
+    "time_taken": 46.854936,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:34.456802 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:46.854936 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\", \"2025-07-15 19:57:23.918113 -- Sending to expanded retrieval\", \"2025-07-15 19:57:23.975789 -- ",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:46.854936",
+    "time_taken": 46.854936,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:34.456802 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:46.854936 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\", \"2025-07-15 19:57:23.918113 -- Sending to expanded retrieval\", \"2025-07-15 19:57:23.975789 -- ",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:46.854936",
+    "time_taken": 46.854936,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:34.456802 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:46.854936 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\", \"2025-07-15 19:57:21.331472 -- initial - generate sub answers - decompose original question -",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:46.854936",
+    "time_taken": 46.854936,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:34.456802 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:46.854936 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\", \"2025-07-15 19:57:21.331472 -- initial - generate sub answers - decompose original question -",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:46.854936",
+    "time_taken": 46.854936,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:34.456802 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:46.854936 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\", \"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\", \"202",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:46.854936",
+    "time_taken": 46.854936,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:34.456802 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:46.854936 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\", \"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\", \"202",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "generate_sub_answer",
+    "time_taken": 46.362213,
+    "result": "success",
+    "full_message": "Run: generate_sub_answer - Status: success",
+    "run_type": "chain",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\", \"2025-07-15 19:57:23.916455 -- Sending to expanded retrieval\", \"2025-07-15 19:57:23.",
+    "outputs": "{\"output\": {\"log_messages\": [\"2025-07-15 19:57:34.965931 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:46.343773 -- Result: LLM Timeout Error. A sub-answer coul"
+  },
+  {
+    "step_name": "Time taken: 0:00:46.343773",
+    "time_taken": 46.343773,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:34.965931 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:46.343773 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"input\": {\"log_messages\": []}}",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:46.343773",
+    "time_taken": 46.343773,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:34.965931 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:46.343773 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\"], \"exploratory_search_results\": [{\"center_chunk\": {\"chunk_id\": 2, \"blurb\": \"| 31 | r",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:46.343773",
+    "time_taken": 46.343773,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:34.965931 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:46.343773 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\"], \"exploratory_search_results\": [{\"center_chunk\": {\"chunk_id\": 2, \"blurb\": \"| 31 | r",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:46.343773",
+    "time_taken": 46.343773,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:34.965931 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:46.343773 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\"], \"exploratory_search_results\": [{\"center_chunk\": {\"chunk_id\": 2, \"blurb\": \"| 31 | r",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:46.343773",
+    "time_taken": 46.343773,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:34.965931 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:46.343773 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\"], \"exploratory_search_results\": [{\"center_chunk\": {\"chunk_id\": 2, \"blurb\": \"| 31 | r",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:46.343773",
+    "time_taken": 46.343773,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:34.965931 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:46.343773 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\"], \"question\": \"Are there alternative frameworks or tools that can be used for evaluat",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:46.343773",
+    "time_taken": 46.343773,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:34.965931 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:46.343773 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\"], \"question\": \"Are there alternative frameworks or tools that can be used for evaluat",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:46.343773",
+    "time_taken": 46.343773,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:34.965931 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:46.343773 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\", \"2025-07-15 19:57:23.916455 -- Sending to expanded retrieval\", \"2025-07-15 19:57:23.970651 -- ",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:46.343773",
+    "time_taken": 46.343773,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:34.965931 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:46.343773 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\", \"2025-07-15 19:57:23.916455 -- Sending to expanded retrieval\", \"2025-07-15 19:57:23.970651 -- ",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:46.343773",
+    "time_taken": 46.343773,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:34.965931 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:46.343773 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\", \"2025-07-15 19:57:21.331472 -- initial - generate sub answers - decompose original question -",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:46.343773",
+    "time_taken": 46.343773,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:34.965931 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:46.343773 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\", \"2025-07-15 19:57:21.331472 -- initial - generate sub answers - decompose original question -",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:46.343773",
+    "time_taken": 46.343773,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:34.965931 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:46.343773 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\", \"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\", \"202",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:46.343773",
+    "time_taken": 46.343773,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:34.965931 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:46.343773 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\", \"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\", \"202",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "generate_sub_answer",
+    "time_taken": 45.967391,
+    "result": "success",
+    "full_message": "Run: generate_sub_answer - Status: success",
+    "run_type": "chain",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\", \"2025-07-15 19:57:23.914018 -- Sending to expanded retrieval\", \"2025-07-15 19:57:23.",
+    "outputs": "{\"output\": {\"log_messages\": [\"2025-07-15 19:57:35.376264 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:45.936998 -- Result: LLM Timeout Error. A sub-answer coul"
+  },
+  {
+    "step_name": "Time taken: 0:00:45.936998",
+    "time_taken": 45.936998,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:35.376264 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:45.936998 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"input\": {\"log_messages\": []}}",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:45.936998",
+    "time_taken": 45.936998,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:35.376264 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:45.936998 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\"], \"exploratory_search_results\": [{\"center_chunk\": {\"chunk_id\": 2, \"blurb\": \"| 31 | r",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:45.936998",
+    "time_taken": 45.936998,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:35.376264 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:45.936998 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\"], \"exploratory_search_results\": [{\"center_chunk\": {\"chunk_id\": 2, \"blurb\": \"| 31 | r",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:45.936998",
+    "time_taken": 45.936998,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:35.376264 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:45.936998 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\"], \"exploratory_search_results\": [{\"center_chunk\": {\"chunk_id\": 2, \"blurb\": \"| 31 | r",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:45.936998",
+    "time_taken": 45.936998,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:35.376264 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:45.936998 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\"], \"exploratory_search_results\": [{\"center_chunk\": {\"chunk_id\": 2, \"blurb\": \"| 31 | r",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:45.936998",
+    "time_taken": 45.936998,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:35.376264 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:45.936998 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\"], \"question\": \"<sub-question>\", \"question_id\": \"0_3\"}}",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:45.936998",
+    "time_taken": 45.936998,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:35.376264 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:45.936998 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\"], \"question\": \"<sub-question>\", \"question_id\": \"0_3\"}}",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:45.936998",
+    "time_taken": 45.936998,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:35.376264 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:45.936998 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\", \"2025-07-15 19:57:23.914018 -- Sending to expanded retrieval\", \"2025-07-15 19:57:23.965825 -- ",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:45.936998",
+    "time_taken": 45.936998,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:35.376264 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:45.936998 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\", \"2025-07-15 19:57:23.914018 -- Sending to expanded retrieval\", \"2025-07-15 19:57:23.965825 -- ",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:45.936998",
+    "time_taken": 45.936998,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:35.376264 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:45.936998 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\", \"2025-07-15 19:57:21.331472 -- initial - generate sub answers - decompose original question -",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:45.936998",
+    "time_taken": 45.936998,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:35.376264 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:45.936998 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\", \"2025-07-15 19:57:21.331472 -- initial - generate sub answers - decompose original question -",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:45.936998",
+    "time_taken": 45.936998,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:35.376264 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:45.936998 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\", \"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\", \"202",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:45.936998",
+    "time_taken": 45.936998,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:35.376264 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:45.936998 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\", \"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\", \"202",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "generate_sub_answer",
+    "time_taken": 45.798402,
+    "result": "success",
+    "full_message": "Run: generate_sub_answer - Status: success",
+    "run_type": "chain",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\", \"2025-07-15 19:57:23.919573 -- Sending to expanded retrieval\", \"2025-07-15 19:57:23.",
+    "outputs": "{\"output\": {\"log_messages\": [\"2025-07-15 19:57:35.544253 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:45.770712 -- Result: LLM Timeout Error. A sub-answer coul"
+  },
+  {
+    "step_name": "Time taken: 0:00:45.770712",
+    "time_taken": 45.770712,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:35.544253 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:45.770712 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"input\": {\"log_messages\": []}}",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:45.770712",
+    "time_taken": 45.770712,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:35.544253 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:45.770712 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\"], \"exploratory_search_results\": [{\"center_chunk\": {\"chunk_id\": 2, \"blurb\": \"| 31 | r",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:45.770712",
+    "time_taken": 45.770712,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:35.544253 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:45.770712 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\"], \"exploratory_search_results\": [{\"center_chunk\": {\"chunk_id\": 2, \"blurb\": \"| 31 | r",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:45.770712",
+    "time_taken": 45.770712,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:35.544253 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:45.770712 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\"], \"exploratory_search_results\": [{\"center_chunk\": {\"chunk_id\": 2, \"blurb\": \"| 31 | r",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:45.770712",
+    "time_taken": 45.770712,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:35.544253 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:45.770712 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\"], \"exploratory_search_results\": [{\"center_chunk\": {\"chunk_id\": 2, \"blurb\": \"| 31 | r",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:45.770712",
+    "time_taken": 45.770712,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:35.544253 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:45.770712 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\"], \"question\": \"What are the specific requirements for integrating LangGraph into an e",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:45.770712",
+    "time_taken": 45.770712,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:35.544253 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:45.770712 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\"], \"question\": \"What are the specific requirements for integrating LangGraph into an e",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:45.770712",
+    "time_taken": 45.770712,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:35.544253 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:45.770712 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\", \"2025-07-15 19:57:23.919573 -- Sending to expanded retrieval\", \"2025-07-15 19:57:23.977967 -- ",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:45.770712",
+    "time_taken": 45.770712,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:35.544253 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:45.770712 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\", \"2025-07-15 19:57:23.919573 -- Sending to expanded retrieval\", \"2025-07-15 19:57:23.977967 -- ",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:45.770712",
+    "time_taken": 45.770712,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:35.544253 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:45.770712 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\", \"2025-07-15 19:57:21.331472 -- initial - generate sub answers - decompose original question -",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:45.770712",
+    "time_taken": 45.770712,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:35.544253 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:45.770712 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\", \"2025-07-15 19:57:21.331472 -- initial - generate sub answers - decompose original question -",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:45.770712",
+    "time_taken": 45.770712,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:35.544253 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:45.770712 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\", \"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\", \"202",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:45.770712",
+    "time_taken": 45.770712,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:35.544253 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:45.770712 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\", \"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\", \"202",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "generate_sub_answer",
+    "time_taken": 45.7682,
+    "result": "success",
+    "full_message": "Run: generate_sub_answer - Status: success",
+    "run_type": "chain",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\", \"2025-07-15 19:57:23.921284 -- Sending to expanded retrieval\", \"2025-07-15 19:57:23.",
+    "outputs": "{\"output\": {\"log_messages\": [\"2025-07-15 19:57:35.566970 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:45.745412 -- Result: LLM Timeout Error. A sub-answer coul"
+  },
+  {
+    "step_name": "Time taken: 0:00:45.745412",
+    "time_taken": 45.745412,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:35.566970 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:45.745412 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"input\": {\"log_messages\": []}}",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:45.745412",
+    "time_taken": 45.745412,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:35.566970 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:45.745412 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\"], \"exploratory_search_results\": [{\"center_chunk\": {\"chunk_id\": 2, \"blurb\": \"| 31 | r",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:45.745412",
+    "time_taken": 45.745412,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:35.566970 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:45.745412 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\"], \"exploratory_search_results\": [{\"center_chunk\": {\"chunk_id\": 2, \"blurb\": \"| 31 | r",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:45.745412",
+    "time_taken": 45.745412,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:35.566970 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:45.745412 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\"], \"exploratory_search_results\": [{\"center_chunk\": {\"chunk_id\": 2, \"blurb\": \"| 31 | r",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:45.745412",
+    "time_taken": 45.745412,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:35.566970 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:45.745412 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\"], \"exploratory_search_results\": [{\"center_chunk\": {\"chunk_id\": 2, \"blurb\": \"| 31 | r",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:45.745412",
+    "time_taken": 45.745412,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:35.566970 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:45.745412 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\"], \"question\": \"What is the role of LangGraph in the evaluation process?\", \"question_i",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:45.745412",
+    "time_taken": 45.745412,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:35.566970 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:45.745412 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"input\": {\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\"], \"question\": \"What is the role of LangGraph in the evaluation process?\", \"question_i",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:45.745412",
+    "time_taken": 45.745412,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:35.566970 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:45.745412 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\", \"2025-07-15 19:57:23.921284 -- Sending to expanded retrieval\", \"2025-07-15 19:57:23.980006 -- ",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:45.745412",
+    "time_taken": 45.745412,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:35.566970 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:45.745412 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"log_messages\": [\"2025-07-15 19:57:23.881878 -- Main Edge - Parallelize Initial Sub-question Answering\", \"2025-07-15 19:57:23.921284 -- Sending to expanded retrieval\", \"2025-07-15 19:57:23.980006 -- ",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:45.745412",
+    "time_taken": 45.745412,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:35.566970 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:45.745412 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\", \"2025-07-15 19:57:21.331472 -- initial - generate sub answers - decompose original question -",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:45.745412",
+    "time_taken": 45.745412,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:35.566970 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:45.745412 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\", \"2025-07-15 19:57:21.331472 -- initial - generate sub answers - decompose original question -",
+    "run_type": "chain"
+  },
+  {
+    "step_name": "Time taken: 0:00:45.745412",
+    "time_taken": 45.745412,
+    "result": "LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "full_message": "2025-07-15 19:57:35.566970 -- initial - generate individual sub answer - generate sub answer -- Time taken: 0:00:45.745412 -- Result: LLM Timeout Error. A sub-answer could not be constructed and the sub-question will be ignored.",
+    "inputs": "{\"log_messages\": [\"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\", \"2025-07-15 19:57:18.835874 -- main - start agent search -- Time taken: 0:00:02.482820\", \"202",
+    "run_type": "chain"
+  }
+]

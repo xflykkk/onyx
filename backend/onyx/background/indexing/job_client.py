@@ -196,7 +196,18 @@ class SimpleJobClient:
             target=_run_in_process, args=(func, queue, args), daemon=True
         )
         job = SimpleJob(id=job_id, process=process, queue=queue)
-        process.start()
+        
+        # Handle broken pipe and other process startup errors
+        try:
+            process.start()
+        except (BrokenPipeError, OSError) as e:
+            # Log the error and re-raise for retry logic
+            error_type = type(e).__name__
+            logger.warning(f"{error_type} during process start for job {job_id}: {e}")
+            # Clean up the failed process
+            if process.is_alive():
+                process.terminate()
+            raise
 
         self.jobs[job_id] = job
 

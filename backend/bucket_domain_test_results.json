@@ -1,0 +1,90 @@
+{
+  "file_exists": true,
+  "successful_urls": [],
+  "failed_urls": [
+    {
+      "url": "https://cdn.deepinsightqa.com/crawl_results/api_test_1752831743/",
+      "success": false,
+      "message": "No files found in folder: crawl_results/api_test_1752831743",
+      "response": {
+        "doc_folder_name": "crawl_results/api_test_1752831743",
+        "crawl_url": "https://example.com/test",
+        "success": false,
+        "message": "No files found in folder: crawl_results/api_test_1752831743",
+        "connector_id": null,
+        "cc_pair_id": null,
+        "indexed_files_count": 0
+      }
+    },
+    {
+      "url": "https://deepinsight-qa.cdn.deepinsightqa.com/crawl_results/api_test_1752831743/",
+      "success": false,
+      "message": "No files found in folder: crawl_results/api_test_1752831743",
+      "response": {
+        "doc_folder_name": "crawl_results/api_test_1752831743",
+        "crawl_url": "https://example.com/test",
+        "success": false,
+        "message": "No files found in folder: crawl_results/api_test_1752831743",
+        "connector_id": null,
+        "cc_pair_id": null,
+        "indexed_files_count": 0
+      }
+    },
+    {
+      "url": "https://deepinsight-qa.deepinsightqa.com/crawl_results/api_test_1752831743/",
+      "success": false,
+      "message": "No files found in folder: crawl_results/api_test_1752831743",
+      "response": {
+        "doc_folder_name": "crawl_results/api_test_1752831743",
+        "crawl_url": "https://example.com/test",
+        "success": false,
+        "message": "No files found in folder: crawl_results/api_test_1752831743",
+        "connector_id": null,
+        "cc_pair_id": null,
+        "indexed_files_count": 0
+      }
+    },
+    {
+      "url": "https://deepinsightqa.com/crawl_results/api_test_1752831743/",
+      "success": false,
+      "message": "No files found in folder: crawl_results/api_test_1752831743",
+      "response": {
+        "doc_folder_name": "crawl_results/api_test_1752831743",
+        "crawl_url": "https://example.com/test",
+        "success": false,
+        "message": "No files found in folder: crawl_results/api_test_1752831743",
+        "connector_id": null,
+        "cc_pair_id": null,
+        "indexed_files_count": 0
+      }
+    },
+    {
+      "url": "https://deepinsight-qa-cn-east-1.cdn.deepinsightqa.com/crawl_results/api_test_1752831743/",
+      "success": false,
+      "message": "No files found in folder: crawl_results/api_test_1752831743",
+      "response": {
+        "doc_folder_name": "crawl_results/api_test_1752831743",
+        "crawl_url": "https://example.com/test",
+        "success": false,
+        "message": "No files found in folder: crawl_results/api_test_1752831743",
+        "connector_id": null,
+        "cc_pair_id": null,
+        "indexed_files_count": 0
+      }
+    },
+    {
+      "url": "https://cdn.deepinsight-qa.deepinsightqa.com/crawl_results/api_test_1752831743/",
+      "success": false,
+      "message": "No files found in folder: crawl_results/api_test_1752831743",
+      "response": {
+        "doc_folder_name": "crawl_results/api_test_1752831743",
+        "crawl_url": "https://example.com/test",
+        "success": false,
+        "message": "No files found in folder: crawl_results/api_test_1752831743",
+        "connector_id": null,
+        "cc_pair_id": null,
+        "indexed_files_count": 0
+      }
+    }
+  ]
+}

@@ -235,7 +235,7 @@ CONTEXTUAL_RAG_PROMPT2 = """<chunk>
 </chunk>
 Please give a short succinct context to situate this chunk within the overall document
 for the purposes of improving search retrieval of the chunk. Answer only with the succinct
-context and nothing else. """
+context and nothing else.no_think. """
 
 CONTEXTUAL_RAG_TOKEN_ESTIMATE = 64  # 19 + 45
 
@@ -243,7 +243,7 @@ DOCUMENT_SUMMARY_PROMPT = """<document>
 {document}
 </document>
 Please give a short succinct summary of the entire document. Answer only with the succinct
-summary and nothing else. """
+summary and nothing else.no_think. """
 
 DOCUMENT_SUMMARY_TOKEN_ESTIMATE = 29
 

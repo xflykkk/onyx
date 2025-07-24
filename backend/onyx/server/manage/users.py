@@ -26,11 +26,13 @@ from onyx.auth.invited_users import get_invited_users
 from onyx.auth.invited_users import write_invited_users
 from onyx.auth.noauth_user import fetch_no_auth_user
 from onyx.auth.noauth_user import set_no_auth_user_preferences
+from onyx.auth.schemas import UserCreate
 from onyx.auth.schemas import UserRole
 from onyx.auth.users import anonymous_user_enabled
 from onyx.auth.users import current_admin_user
 from onyx.auth.users import current_curator_or_admin_user
 from onyx.auth.users import current_user
+from onyx.auth.users import get_user_manager
 from onyx.auth.users import optional_user
 from onyx.configs.app_configs import AUTH_BACKEND
 from onyx.configs.app_configs import AUTH_TYPE
@@ -127,6 +129,21 @@ def set_user_role(
 
 class TestUpsertRequest(BaseModel):
     email: str
+
+
+class CreateUserRequest(BaseModel):
+    email: str
+    password: str
+    role: UserRole = UserRole.BASIC
+    is_verified: bool = True
+
+
+class CreateUserResponse(BaseModel):
+    id: str
+    email: str
+    role: UserRole
+    is_active: bool
+    is_verified: bool
 
 
 @router.post("/manage/users/test-upsert-user")
@@ -358,6 +375,102 @@ def bulk_invite_users(
             "onyx.server.tenants.user_mapping", "remove_users_from_tenant", None
         )(new_invited_emails, tenant_id)
         raise e
+
+
+@router.post("/manage/admin/create-user")
+async def create_single_user(
+    request: CreateUserRequest,
+    current_user: User | None = Depends(current_admin_user),
+    user_manager = Depends(get_user_manager),
+    db_session: Session = Depends(get_session),
+) -> CreateUserResponse:
+    """创建单个用户并立即生效（基于批量邀请接口的简化版本）"""
+    tenant_id = get_current_tenant_id()
+
+    if current_user is None:
+        raise HTTPException(
+            status_code=400, detail="Auth is disabled, cannot create user"
+        )
+
+    # 邮箱验证 (复用批量邀请的逻辑)
+    try:
+        email_info = validate_email(request.email)
+        normalized_email = email_info.normalized
+    except (EmailUndeliverableError, EmailNotValidError) as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid email address: {request.email} - {str(e)}",
+        )
+
+    # 检查用户是否已存在
+    existing_user = get_user_by_email(email=normalized_email, db_session=db_session)
+    if existing_user:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"User with email {normalized_email} already exists"
+        )
+
+    # 多租户处理 (复用批量邀请的逻辑)
+    if MULTI_TENANT:
+        try:
+            fetch_ee_implementation_or_noop(
+                "onyx.server.tenants.provisioning", "add_users_to_tenant", None
+            )([normalized_email], tenant_id)
+        except Exception as e:
+            logger.error(f"Failed to add user to tenant {tenant_id}: {str(e)}")
+            raise HTTPException(
+                status_code=500, 
+                detail=f"Failed to add user to tenant: {str(e)}"
+            )
+
+    # 创建用户对象
+    user_create = UserCreate(
+        email=normalized_email,
+        password=request.password,
+        role=request.role,
+        is_verified=request.is_verified,
+        is_active=True
+    )
+
+    try:
+        # 使用 UserManager 创建用户
+        created_user = await user_manager.create(user_create, safe=False, request=None)
+        
+        # 计费处理 (复用批量邀请的逻辑)
+        if MULTI_TENANT and not DEV_MODE:
+            try:
+                fetch_ee_implementation_or_noop(
+                    "onyx.server.tenants.billing", "register_tenant_users", None
+                )(tenant_id, get_live_users_count(db_session))
+            except Exception as e:
+                logger.error(f"Failed to register tenant users: {str(e)}")
+                # 这里可以选择回滚用户创建，但为了简化先不回滚
+
+        logger.info(f"Successfully created user: {created_user.email}")
+        
+        return CreateUserResponse(
+            id=str(created_user.id),
+            email=created_user.email,
+            role=created_user.role,
+            is_active=created_user.is_active,
+            is_verified=created_user.is_verified
+        )
+
+    except Exception as e:
+        # 如果用户创建失败，从租户中移除
+        if MULTI_TENANT:
+            try:
+                fetch_ee_implementation_or_noop(
+                    "onyx.server.tenants.user_mapping", "remove_users_from_tenant", None
+                )([normalized_email], tenant_id)
+            except Exception:
+                logger.error("Failed to cleanup tenant user mapping after user creation failure")
+        
+        logger.error(f"Failed to create user {normalized_email}: {str(e)}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Failed to create user: {str(e)}"
+        )
 
 
 @router.patch("/manage/admin/remove-invited-user")

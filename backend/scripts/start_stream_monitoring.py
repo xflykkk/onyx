@@ -10,7 +10,7 @@ from datetime import datetime
 from pathlib import Path
 
 
-def monitor_stream_logs(log_dir="/tmp/onyx_stream_logs", watch_interval=2):
+def monitor_stream_logs(log_dir="/Users/zhuxiaofeng/Github/onyx/backend/example", watch_interval=2):
     """监控流式日志目录，自动分析新文件"""
     
     # 确保日志目录存在
@@ -104,7 +104,7 @@ def print_usage():
     print("  python view_stream_logs.py --latest    # 查看最新日志详情")
     print("  python view_stream_logs.py --help      # 查看详细帮助")
     print()
-    print("日志位置: /tmp/onyx_stream_logs/")
+    print("日志位置: /Users/zhuxiaofeng/Github/onyx/backend/example/")
     print()
 
 

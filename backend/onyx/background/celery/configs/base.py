@@ -2,6 +2,9 @@
 import urllib.parse
 
 from onyx.configs.app_configs import CELERY_BROKER_POOL_LIMIT
+from onyx.configs.app_configs import CELERY_REDIS_SOCKET_CONNECT_TIMEOUT
+from onyx.configs.app_configs import CELERY_REDIS_SOCKET_TIMEOUT
+from onyx.configs.app_configs import CELERY_REDIS_VISIBILITY_TIMEOUT
 from onyx.configs.app_configs import CELERY_RESULT_EXPIRES
 from onyx.configs.app_configs import REDIS_DB_NUMBER_CELERY
 from onyx.configs.app_configs import REDIS_DB_NUMBER_CELERY_RESULT_BACKEND
@@ -48,6 +51,10 @@ broker_transport_options = {
     "health_check_interval": REDIS_HEALTH_CHECK_INTERVAL,
     "socket_keepalive": True,
     "socket_keepalive_options": REDIS_SOCKET_KEEPALIVE_OPTIONS,
+    # Socket timeout configurations to prevent broken pipe errors
+    "socket_timeout": CELERY_REDIS_SOCKET_TIMEOUT,
+    "socket_connect_timeout": CELERY_REDIS_SOCKET_CONNECT_TIMEOUT,
+    "visibility_timeout": CELERY_REDIS_VISIBILITY_TIMEOUT,
 }
 # endregion
 
@@ -62,6 +69,11 @@ redis_backend_health_check_interval = REDIS_HEALTH_CHECK_INTERVAL
 
 task_default_priority = OnyxCeleryPriority.MEDIUM
 task_acks_late = True
+
+# 任务超时和重试配置
+task_soft_time_limit = 300  # 5分钟软超时
+task_time_limit = 600      # 10分钟硬超时
+task_reject_on_worker_lost = True
 
 # region Task result backend settings
 # It's possible we don't even need celery's result backend, in which case all of the optimization below

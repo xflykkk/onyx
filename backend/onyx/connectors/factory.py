@@ -7,6 +7,7 @@ from onyx.configs.app_configs import INTEGRATION_TESTS_MODE
 from onyx.configs.constants import DocumentSource
 from onyx.configs.llm_configs import get_image_extraction_and_analysis_enabled
 from onyx.connectors.airtable.airtable_connector import AirtableConnector
+from onyx.connectors.qiniu_cloud.connector import QiniuCloudConnector
 from onyx.connectors.asana.connector import AsanaConnector
 from onyx.connectors.axero.connector import AxeroConnector
 from onyx.connectors.blob.connector import BlobStorageConnector
@@ -121,6 +122,7 @@ def identify_connector_class(
         DocumentSource.EGNYTE: EgnyteConnector,
         DocumentSource.AIRTABLE: AirtableConnector,
         DocumentSource.HIGHSPOT: HighspotConnector,
+        DocumentSource.QINIU_CLOUD: QiniuCloudConnector,
         # just for integration tests
         DocumentSource.MOCK_CONNECTOR: MockConnector,
     }

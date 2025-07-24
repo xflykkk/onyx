@@ -80,6 +80,17 @@ class OnyxRequestIDFilter(logging.Filter):
         return True
 
 
+class CeleryEndpointFilter(logging.Filter):
+    """Filter to suppress access logs for celery monitoring endpoints"""
+    
+    def filter(self, record: logging.LogRecord) -> bool:
+        # Skip logging for GET /api/celery/pending requests
+        if hasattr(record, 'msg') and isinstance(record.msg, str):
+            if 'GET /api/celery/pending' in record.msg:
+                return False
+        return True
+
+
 class OnyxLoggingAdapter(logging.LoggerAdapter):
     def process(
         self, msg: str, kwargs: MutableMapping[str, Any]
@@ -265,6 +276,7 @@ def setup_uvicorn_logger(
     uvicorn_logger.addHandler(handler)
     uvicorn_logger.setLevel(log_level)
     uvicorn_logger.addFilter(OnyxRequestIDFilter())
+    uvicorn_logger.addFilter(CeleryEndpointFilter())
 
     if shared_file_handlers:
         for fh in shared_file_handlers:

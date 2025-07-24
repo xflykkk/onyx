@@ -18,6 +18,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from onyx.auth.users import current_user
+from onyx.custom_auth.dependencies import current_custom_chat_user
 from onyx.configs.constants import DocumentSource
 from onyx.connectors.models import InputType
 from onyx.db.connector import create_connector
@@ -44,6 +45,7 @@ from onyx.server.documents.models import ConnectorBase
 from onyx.server.documents.models import CredentialBase
 from onyx.server.query_and_chat.chat_backend import RECENT_DOCS_FOLDER_ID
 from onyx.server.user_documents.models import MessageResponse
+from onyx.server.user_documents.models import UserFileIndexingStatusResponse
 from onyx.server.user_documents.models import UserFileSnapshot
 from onyx.server.user_documents.models import UserFolderSnapshot
 from onyx.utils.logger import setup_logger
@@ -470,7 +472,7 @@ def get_files_indexing_status(
 def get_files_token_estimate(
     file_ids: list[int] = Query([]),
     folder_ids: list[int] = Query([]),
-    user: User = Depends(current_user),
+    user: User = Depends(current_custom_chat_user),
     db_session: Session = Depends(get_session),
 ) -> dict:
     """Get token estimate for files and folders"""

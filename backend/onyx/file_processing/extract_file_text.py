@@ -26,6 +26,12 @@ from PIL import Image
 from pypdf import PdfReader
 from pypdf.errors import PdfStreamError
 
+try:
+    import frontmatter
+    FRONTMATTER_AVAILABLE = True
+except ImportError:
+    FRONTMATTER_AVAILABLE = False
+
 from onyx.configs.constants import FileOrigin
 from onyx.configs.constants import ONYX_METADATA_FILENAME
 from onyx.configs.llm_configs import get_image_extraction_and_analysis_enabled
@@ -36,6 +42,15 @@ from onyx.file_store.file_store import FileStore
 from onyx.utils.logger import setup_logger
 
 logger = setup_logger()
+
+
+class ExtractionResult(NamedTuple):
+    """Structured result from text and image extraction from various file types."""
+
+    text_content: str
+    embedded_images: Sequence[tuple[bytes, str]]
+    metadata: dict[str, Any]
+
 
 # NOTE(rkuo): Unify this with upload_files_for_chat and file_valiation.py
 TEXT_SECTION_SEPARATOR = "\n\n"
@@ -433,6 +448,148 @@ def file_io_to_text(file: IO[Any]) -> str:
     return file_content
 
 
+def markdown_to_text_and_metadata(
+    file: IO[Any], 
+    file_name: str = ""
+) -> ExtractionResult:
+    """
+    专门的Markdown解析器，支持YAML front matter和链接提取
+    
+    功能：
+    - 解析YAML front matter metadata
+    - 提取内联Markdown链接  
+    - 保持文档结构用于分块
+    - 映射metadata到Document模型
+    
+    Args:
+        file: 文件IO对象
+        file_name: 文件名（用于错误处理）
+        
+    Returns:
+        ExtractionResult包含text_content, embedded_images, metadata
+    """
+    
+    if not FRONTMATTER_AVAILABLE:
+        logger.warning(f"python-frontmatter not available, falling back to plain text processing for {file_name}")
+        file.seek(0)
+        encoding = detect_encoding(file)
+        text_content_raw, file_metadata = read_text_file(
+            file, encoding=encoding, ignore_onyx_metadata=False
+        )
+        return ExtractionResult(
+            text_content=text_content_raw,
+            embedded_images=[],
+            metadata=file_metadata
+        )
+    
+    try:
+        # 读取并解析front matter
+        file.seek(0)
+        content = file.read()
+        if isinstance(content, bytes):
+            content = content.decode('utf-8', errors='replace')
+        
+        post = frontmatter.loads(content)
+        
+        # 提取front matter metadata和markdown内容
+        front_matter_metadata = post.metadata
+        markdown_content = post.content
+        
+        # 提取内联链接 [text](url)
+        link_pattern = r'\[([^\]]+)\]\(([^)]+)\)'
+        inline_links = re.findall(link_pattern, markdown_content)
+        
+        # 处理metadata
+        processed_metadata = {}
+        
+        # 标准字段处理
+        if 'title' in front_matter_metadata:
+            processed_metadata['title'] = str(front_matter_metadata['title'])
+        
+        # 处理作者信息（支持字符串和对象格式）
+        if 'author' in front_matter_metadata:
+            author = front_matter_metadata['author']
+            if isinstance(author, dict):
+                processed_metadata['author_name'] = author.get('name', '')
+                if author.get('email'):
+                    processed_metadata['author_email'] = author.get('email')
+                if author.get('link'):
+                    processed_metadata['author_link'] = author.get('link')
+            else:
+                processed_metadata['author_name'] = str(author)
+        
+        # 处理日期
+        if 'date' in front_matter_metadata:
+            date_value = front_matter_metadata['date']
+            if hasattr(date_value, 'strftime'):  # datetime对象
+                processed_metadata['date'] = date_value.strftime('%Y-%m-%d')
+            else:
+                processed_metadata['date'] = str(date_value)
+        
+        # 处理标签
+        if 'tags' in front_matter_metadata:
+            tags = front_matter_metadata['tags']
+            if isinstance(tags, list):
+                processed_metadata['tags'] = [str(tag) for tag in tags]
+            elif isinstance(tags, str):
+                # 支持逗号分隔的标签字符串
+                processed_metadata['tags'] = [tag.strip() for tag in tags.split(',')]
+            else:
+                processed_metadata['tags'] = [str(tags)]
+        
+        # 关键：source_link从front matter的link字段获取
+        if 'link' in front_matter_metadata:
+            processed_metadata['source_link'] = str(front_matter_metadata['link'])
+        
+        # 处理其他标准字段
+        for field in ['category', 'description', 'version', 'status']:
+            if field in front_matter_metadata:
+                processed_metadata[field] = str(front_matter_metadata[field])
+        
+        # 处理贡献者
+        if 'contributors' in front_matter_metadata:
+            contributors = front_matter_metadata['contributors']
+            if isinstance(contributors, list):
+                processed_metadata['contributors'] = [str(c) for c in contributors]
+            else:
+                processed_metadata['contributors'] = [str(contributors)]
+        
+        # 添加内联链接作为metadata
+        if inline_links:
+            processed_metadata['inline_links'] = [
+                f"{text}|{url}" for text, url in inline_links
+            ]
+        
+        # 添加其他自定义字段
+        standard_fields = {
+            'title', 'author', 'date', 'tags', 'link', 'category', 
+            'description', 'version', 'status', 'contributors'
+        }
+        for key, value in front_matter_metadata.items():
+            if key not in standard_fields:
+                processed_metadata[f"custom_{key}"] = str(value)
+        
+        return ExtractionResult(
+            text_content=markdown_content,
+            embedded_images=[],  # Markdown文件不包含二进制图像
+            metadata=processed_metadata
+        )
+        
+    except Exception as e:
+        logger.exception(f"Failed to parse Markdown metadata from {file_name}: {e}")
+        # 降级到普通文本处理
+        file.seek(0)
+        encoding = detect_encoding(file)
+        text_content_raw, file_metadata = read_text_file(
+            file, encoding=encoding, ignore_onyx_metadata=False
+        )
+        return ExtractionResult(
+            text_content=text_content_raw,
+            embedded_images=[],
+            metadata=file_metadata
+        )
+
+
 def extract_file_text(
     file: IO[Any],
     file_name: str,
@@ -489,14 +646,6 @@ def extract_file_text(
             ) from e
         logger.warning(f"Failed to process file {file_name or 'Unknown'}: {str(e)}")
         return ""
-
-
-class ExtractionResult(NamedTuple):
-    """Structured result from text and image extraction from various file types."""
-
-    text_content: str
-    embedded_images: Sequence[tuple[bytes, str]]
-    metadata: dict[str, Any]
 
 
 def extract_text_and_images(
@@ -579,6 +728,11 @@ def extract_text_and_images(
                 embedded_images=[],
                 metadata={},
             )
+
+        # Special handling for Markdown files with frontmatter support
+        if extension in [".md", ".mdx"]:
+            file.seek(0)
+            return markdown_to_text_and_metadata(file, file_name)
 
         # If we reach here and it's a recognized text extension
         if is_text_file_extension(file_name):

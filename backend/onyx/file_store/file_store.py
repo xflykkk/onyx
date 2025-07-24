@@ -424,9 +424,16 @@ def get_default_file_store(db_session: Session) -> FileStore:
     """
     Returns the configured file store implementation.
 
-    Supports AWS S3, MinIO, and other S3-compatible storage.
+    Supports Qiniu Cloud, AWS S3, MinIO, and other S3-compatible storage.
 
     Configuration is handled via environment variables defined in app_configs.py:
+
+    Qiniu Cloud (Default):
+    - QINIU_DEFAULT_BUCKET=<bucket-name>
+    - QINIU_ACCESS_KEY=<access-key>
+    - QINIU_SECRET_KEY=<secret-key>
+    - QINIU_BUCKET_DOMAIN=<bucket-domain>
+    - QINIU_REGION=<region> (optional, defaults to 'cn-east-1')
 
     AWS S3:
     - S3_FILE_STORE_BUCKET_NAME=<bucket-name>
@@ -445,4 +452,21 @@ def get_default_file_store(db_session: Session) -> FileStore:
     Other S3-compatible storage (Digital Ocean, Linode, etc.):
     - Same as MinIO, but set appropriate S3_ENDPOINT_URL
     """
-    return get_s3_file_store(db_session)
+    from onyx.configs.app_configs import (
+        QINIU_DEFAULT_BUCKET,
+        QINIU_ACCESS_KEY,
+        QINIU_SECRET_KEY,
+        QINIU_BUCKET_DOMAIN,
+    )
+    
+    # 优先使用 S3/MinIO（如果配置了 S3_FILE_STORE_BUCKET_NAME）
+    if S3_FILE_STORE_BUCKET_NAME:
+        return get_s3_file_store(db_session)
+    
+    # 回退到七牛云（如果配置了七牛云）
+    if QINIU_DEFAULT_BUCKET and QINIU_ACCESS_KEY and QINIU_SECRET_KEY and QINIU_BUCKET_DOMAIN:
+        from onyx.file_store.qiniu_file_store import get_qiniu_file_store
+        return get_qiniu_file_store(db_session)
+    
+    # 如果都没有配置，抛出错误
+    raise RuntimeError("No file store configured. Please configure either S3 or Qiniu Cloud storage.")

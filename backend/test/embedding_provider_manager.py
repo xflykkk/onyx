@@ -360,6 +360,91 @@ class EmbeddingProviderManager:
                 return provider
         return None
     
+    def get_current_search_settings(self) -> Optional[Dict[str, Any]]:
+        """
+        获取当前的搜索设置
+        
+        Returns:
+            当前搜索设置，如果失败则返回None
+        """
+        try:
+            url = f"{self.base_url}/search-settings/get-current-search-settings"
+            response = requests.get(url, headers=self.headers)
+            
+            if response.status_code == 200:
+                return response.json()
+            else:
+                print(f"✗ 获取搜索设置失败: {response.status_code} - {response.text}")
+                return None
+        except Exception as e:
+            print(f"✗ 获取搜索设置失败: {e}")
+            return None
+    
+    def update_reranker_settings(self) -> bool:
+        """
+        更新当前活跃模型的 reranker 设置
+        直接更新当前配置，立即生效，不创建新的 FUTURE 状态
+        """
+        print("=== 更新 Reranker 设置 ===")
+        
+        try:
+            # 1. 获取当前的搜索设置
+            print("1. 获取当前搜索设置...")
+            current_settings = self.get_current_search_settings()
+            if not current_settings:
+                print("✗ 无法获取当前搜索设置")
+                return False
+            
+            print(f"   当前模型: {current_settings.get('model_name')}")
+            print(f"   当前 rerank 数量: {current_settings.get('num_rerank', 'N/A')}")
+            print(f"   当前 rerank 模型: {current_settings.get('rerank_model_name', 'N/A')}")
+            
+            # 2. 准备更新请求
+            print("\n2. 准备更新 reranker 配置...")
+            url = f"{self.base_url}/search-settings/update-inference-settings"
+            
+            # 更新 reranker 相关字段
+            updated_settings = current_settings.copy()
+            updated_settings.update({
+                "num_rerank": 20,  # 增加到 20
+                "rerank_model_name": "Qwen3-Reranker-0.6B",
+                "rerank_provider_type": "litellm",
+                "rerank_api_url": "http://172.16.0.120:1234/v1",
+                "rerank_api_key": "sk-Zd7gzQGylVwOyUUMvOBhow",
+                "disable_rerank_for_streaming": False  # 确保启用 rerank
+            })
+            
+            print("   新的 rerank 配置:")
+            print(f"     - rerank 数量: 20")
+            print(f"     - rerank 模型: BAAI/bge-reranker-v2-m3")
+            print(f"     - rerank provider: litellm")
+            print(f"     - rerank API: http://172.16.0.120:1234/v1")
+            
+            # 3. 发送更新请求
+            print("\n3. 发送更新请求...")
+            response = requests.post(url, json=updated_settings, headers=self.headers)
+            
+            if response.status_code == 200:
+                print("✓ Reranker 设置更新成功（立即生效）")
+                
+                # 4. 验证更新结果
+                print("\n4. 验证更新结果...")
+                new_settings = self.get_current_search_settings()
+                if new_settings:
+                    print(f"   ✓ rerank 数量: {new_settings.get('num_rerank')}")
+                    print(f"   ✓ rerank 模型: {new_settings.get('rerank_model_name')}")
+                    print(f"   ✓ rerank provider: {new_settings.get('rerank_provider_type')}")
+                    print(f"   ✓ rerank API: {new_settings.get('rerank_api_url')}")
+                
+                return True
+            else:
+                print(f"✗ 更新失败: {response.status_code} - {response.text}")
+                return False
+                
+        except Exception as e:
+            print(f"✗ 更新 reranker 设置失败: {e}")
+            return False
+    
     def set_active_embedding_model(self, model_name: str) -> bool:
         """
         设置指定的 embedding 模型为当前活跃模型
@@ -441,7 +526,7 @@ class EmbeddingProviderTemplates:
     @staticmethod
     def create_openai_config(
         api_key: str,
-        api_url: str = "http://172.16.0.120:4000/v1",
+        api_url: str = "http://172.16.0.120:1234/v1",
         api_version: Optional[str] = None
     ) -> EmbeddingProviderConfig:
         """
@@ -467,7 +552,7 @@ class EmbeddingProviderTemplates:
         provider_type: str,
         model_name: str,
         api_key: str,
-        api_url: str = "http://172.16.0.120:4000/v1"
+        api_url: str = "http://172.16.0.120:1234/v1"
     ) -> TestEmbeddingConfig:
         """
         创建测试配置
@@ -549,7 +634,7 @@ if __name__ == "__main__":
         print("\n4. 创建新的 OpenAI Embedding Provider...")
         new_config = EmbeddingProviderTemplates.create_openai_config(
             api_key="sk-Zd7gzQGylVwOyUUMvOBhow",
-            api_url="http://172.16.0.120:4000/v1/embeddings"
+            api_url="http://172.16.0.120:1234/v1/embeddings"
         )
         
         result = manager.create_or_update_embedding_provider(new_config)
@@ -561,7 +646,7 @@ if __name__ == "__main__":
             provider_type="litellm",
             model_name="openai/qwen3-embedding-0.6b",
             api_key="sk-Zd7gzQGylVwOyUUMvOBhow",
-            api_url="http://172.16.0.120:4000/v1/embeddings"
+            api_url="http://172.16.0.120:1234/v1/embeddings"
         )
         
         test_success = manager.test_embedding_provider(test_config)
@@ -746,7 +831,7 @@ def setup_qwen_embedding():
         config = EmbeddingProviderConfig(
             provider_type="litellm",
             api_key="sk-Zd7gzQGylVwOyUUMvOBhow",
-            api_url="http://172.16.0.120:4000/v1/embeddings"  # 使用完整的嵌入端点
+            api_url="http://172.16.0.120:1234/v1/embeddings"  # 使用完整的嵌入端点
         )
         
         result = manager.create_or_update_embedding_provider(config)
@@ -758,7 +843,7 @@ def setup_qwen_embedding():
             provider_type="litellm",
             model_name="openai/qwen3-embedding-0.6b",
             api_key="sk-Zd7gzQGylVwOyUUMvOBhow",
-            api_url="http://172.16.0.120:4000/v1/embeddings"
+            api_url="http://172.16.0.120:1234/v1/embeddings"
         )
         
         if not manager.test_embedding_provider(test_config):
@@ -802,11 +887,33 @@ def setup_qwen_embedding():
 
 # 如果只想设置 qwen embedding，取消下面的注释：
 if __name__ == "__main__":
-    # 重新设置 qwen embedding 模型
-    setup_qwen_embedding()
+    # # 重新设置 qwen embedding 模型
+    # setup_qwen_embedding()
     
-    # 显示最终结果
-    print("\n" + "="*50)
+    # # 显示最终结果
+    # print("\n" + "="*50)
 
-    print("最终的模型列表:")
-    list_all_embedding_models()
+    # print("最终的模型列表:")
+    # list_all_embedding_models()
+    
+    # 只更新 reranker 设置
+    manager = EmbeddingProviderManager()
+    
+    # 更新 reranker 配置
+    success = manager.update_reranker_settings()
+    
+    if success:
+        print("\n🎉 Reranker 配置更新完成！")
+    else:
+        print("\n❌ Reranker 配置更新失败！")
+    
+    # 显示当前配置
+    print("\n" + "="*50)
+    print("当前模型配置:")
+    current = manager.get_current_search_settings()
+    if current:
+        print(f"模型: {current.get('model_name')}")
+        print(f"Rerank 数量: {current.get('num_rerank')}")
+        print(f"Rerank 模型: {current.get('rerank_model_name')}")
+        print(f"Rerank Provider: {current.get('rerank_provider_type')}")
+        print(f"Rerank API: {current.get('rerank_api_url')}")

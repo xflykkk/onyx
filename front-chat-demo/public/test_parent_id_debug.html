@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Parent Message ID 调试测试</title>
+  <style>
+    body { 
+      font-family: monospace; 
+      padding: 20px; 
+      background: #1a1a1a; 
+      color: #00ff00; 
+    }
+    .test-area { 
+      background: #2a2a2a; 
+      padding: 15px; 
+      margin: 10px 0; 
+      border-radius: 5px; 
+      border: 1px solid #444; 
+    }
+    button { 
+      background: #4CAF50; 
+      color: white; 
+      padding: 10px 20px; 
+      border: none; 
+      border-radius: 5px; 
+      cursor: pointer; 
+      margin: 5px; 
+    }
+    button:hover { background: #45a049; }
+    .output { 
+      white-space: pre-wrap; 
+      max-height: 400px; 
+      overflow-y: auto; 
+      background: #000; 
+      padding: 10px; 
+      border-radius: 5px; 
+      border: 1px solid #444; 
+      margin-top: 10px; 
+    }
+    .error { color: #ff4444; }
+    .success { color: #44ff44; }
+    .info { color: #4444ff; }
+  </style>
+</head>
+<body>
+  <h1>🔧 Parent Message ID 调试测试</h1>
+  <p>测试第二次聊天时parent_message_id的问题</p>
+  
+  <div class="test-area">
+    <h3>API端点测试</h3>
+    <button onclick="testCreateSession()">1️⃣ 创建Chat Session</button>
+    <button onclick="testFirstMessage()" id="firstMsgBtn" disabled>2️⃣ 发送第一条消息</button>
+    <button onclick="testSecondMessage()" id="secondMsgBtn" disabled>3️⃣ 发送第二条消息</button>
+    <div id="output" class="output"></div>
+  </div>
+
+  <script>
+    const API_BASE = 'http://172.16.3.94:8888';
+    let chatSessionId = null;
+    let parentMessageId = null;
+    let messageCount = 0;
+
+    function log(message, type = 'info') {
+      const output = document.getElementById('output');
+      const timestamp = new Date().toLocaleTimeString();
+      const colorClass = type === 'error' ? 'error' : type === 'success' ? 'success' : 'info';
+      output.innerHTML += `<span class="${colorClass}">[${timestamp}] ${message}</span>\n`;
+      output.scrollTop = output.scrollHeight;
+      console.log(`[${timestamp}] ${message}`);
+    }
+
+    async function testCreateSession() {
+      log('🚀 创建Chat Session...');
+      
+      try {
+        const response = await fetch(`${API_BASE}/chat/create-chat-session`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            persona_id: 0
+          })
+        });
+
+        if (response.ok) {
+        const data = await response.json();
+        chatSessionId = data.chat_session_id;
+        log(`✅ Session创建成功: ${chatSessionId}`, 'success');
+          document.getElementById('firstMsgBtn').disabled = false;
+        } else {
+          const errorText = await response.text();
+          log(`❌ Session创建失败: HTTP ${response.status}: ${errorText}`, 'error');
+        }
+      } catch (error) {
+        log(`❌ Session创建失败: ${error.message}`, 'error');
+      }
+    }
+
+    async function testFirstMessage() {
+      if (!chatSessionId) {
+        log('❌ 请先创建Chat Session', 'error');
+        return;
+      }
+
+      log('📤 发送第一条消息...');
+      messageCount++;
+      
+      try {
+        const response = await fetch(`${API_BASE}/chat/send-message`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            chat_session_id: chatSessionId,
+            parent_message_id: parentMessageId, // 第一次应该是null
+            message: `测试消息 #${messageCount}`,
+            file_descriptors: [],
+            prompt_id: null,
+            search_doc_ids: null,
+            retrieval_options: {
+              run_search: "always",
+              real_time: true,
+              enable_auto_detect_filters: false,
+              filters: {}
+            }
+          })
+        });
+
+        if (response.ok) {
+          log(`✅ 第一条消息发送成功`, 'success');
+          log(`🔄 开始监听SSE流...`, 'info');
+          
+          // 读取SSE流
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            
+            const chunk = decoder.decode(value);
+            const lines = chunk.split('\n');
+            
+            for (const line of lines) {
+              if (line.trim()) {
+                try {
+                  const data = JSON.parse(line);
+                  
+                  // 检查是否是ChatMessageDetailPacket
+                  if (data.message_id) {
+                    parentMessageId = data.message_id;
+                    log(`🆔 收到message_id: ${parentMessageId}`, 'success');
+                    document.getElementById('secondMsgBtn').disabled = false;
+                  }
+                  
+                  if (data.answer_piece) {
+                    log(`💬 收到回答片段: ${data.answer_piece}`);
+                  }
+                } catch (e) {
+                  // 忽略非JSON行
+                }
+              }
+            }
+        }
+
+          log(`✅ 第一条消息处理完成`, 'success');
+        } else {
+          const errorText = await response.text();
+          log(`❌ 第一条消息发送失败: HTTP ${response.status}: ${errorText}`, 'error');
+        }
+      } catch (error) {
+        log(`❌ 第一条消息发送失败: ${error.message}`, 'error');
+      }
+    }
+
+    async function testSecondMessage() {
+      if (!chatSessionId) {
+        log('❌ 请先创建Chat Session', 'error');
+        return;
+      }
+
+      if (!parentMessageId) {
+        log('❌ 没有有效的parent_message_id，请先发送第一条消息', 'error');
+        return;
+      }
+
+      log('📤 发送第二条消息...');
+      log(`🔗 使用parent_message_id: ${parentMessageId}`, 'info');
+      messageCount++;
+      
+      try {
+        const response = await fetch(`${API_BASE}/chat/send-message`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            chat_session_id: chatSessionId,
+            parent_message_id: parentMessageId, // 使用第一条消息的ID
+            message: `测试消息 #${messageCount}`,
+            file_descriptors: [],
+            prompt_id: null,
+            search_doc_ids: null,
+            retrieval_options: {
+              run_search: "always",
+              real_time: true,
+              enable_auto_detect_filters: false,
+              filters: {}
+        }
+          })
+        });
+
+        if (response.ok) {
+          log(`✅ 第二条消息发送成功！问题已解决！`, 'success');
+          
+          // 简单处理SSE流
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+          let receivedData = false;
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+            const chunk = decoder.decode(value);
+            if (chunk.trim()) {
+              receivedData = true;
+              log(`📥 收到响应数据: ${chunk.substring(0, 100)}...`);
+              break; // 只显示第一个数据包
+            }
+        }
+
+          if (receivedData) {
+            log(`🎉 第二条消息测试通过！parent_message_id正常工作！`, 'success');
+          }
+        } else {
+          const errorText = await response.text();
+          log(`❌ 第二条消息发送失败: HTTP ${response.status}: ${errorText}`, 'error');
+          
+          // 检查是否是parent_message_id问题
+          if (errorText.includes('parent_message_id') || response.status === 500) {
+            log(`🔍 这可能是parent_message_id相关的错误`, 'error');
+          }
+        }
+      } catch (error) {
+        log(`❌ 第二条消息发送失败: ${error.message}`, 'error');
+      }
+    }
+
+    // 页面加载完成时的初始化
+    document.addEventListener('DOMContentLoaded', function() {
+      log('🚀 请按顺序点击按钮开始测试...');
+    });
+  </script>
+</body>
+</html> 

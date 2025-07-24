@@ -1,3 +1,4 @@
+import time
 from collections import defaultdict
 from collections.abc import Callable
 from functools import partial
@@ -568,12 +569,19 @@ def add_document_summaries(
     if chunks_by_doc[0].contextual_rag_reserved_tokens == 0:
         return None
 
+    doc_id = chunks_by_doc[0].source_document.id
+    logger.debug(f"Starting document summary generation for doc {doc_id}")
+    doc_summary_start_time = time.time()
+    
     doc_tokens = tokenizer.encode(chunks_by_doc[0].source_document.get_text_content())
     doc_content = tokenizer_trim_middle(doc_tokens, trunc_doc_tokens, tokenizer)
     summary_prompt = DOCUMENT_SUMMARY_PROMPT.format(document=doc_content)
     doc_summary = message_to_string(
         llm.invoke(summary_prompt, max_tokens=MAX_CONTEXT_TOKENS)
     )
+    
+    doc_summary_time = time.time() - doc_summary_start_time
+    logger.debug(f"Document summary generated for doc {doc_id} in {doc_summary_time:.2f}s")
 
     for chunk in chunks_by_doc:
         chunk.doc_summary = doc_summary
@@ -620,6 +628,10 @@ def add_chunk_summaries(
         )
 
     context_prompt1 = CONTEXTUAL_RAG_PROMPT1.format(document=doc_info)
+    
+    doc_id = chunks_by_doc[0].source_document.id
+    logger.debug(f"Starting chunk context generation for doc {doc_id}, {len(chunks_by_doc)} chunks")
+    chunk_context_start_time = time.time()
 
     def assign_context(chunk: DocAwareChunk) -> None:
         context_prompt2 = CONTEXTUAL_RAG_PROMPT2.format(chunk=chunk.content)
@@ -642,6 +654,9 @@ def add_chunk_summaries(
     run_functions_tuples_in_parallel(
         [(assign_context, (chunk,)) for chunk in chunks_by_doc]
     )
+    
+    chunk_context_time = time.time() - chunk_context_start_time
+    logger.debug(f"Chunk context generation completed for doc {doc_id} in {chunk_context_time:.2f}s")
 
 
 def add_contextual_summaries(
@@ -757,13 +772,18 @@ def index_doc_batch(
     logger.debug(f"Starting indexing process for documents: {doc_descriptors}")
 
     logger.debug("Starting chunking")
+    chunking_start_time = time.time()
     # NOTE: no special handling for failures here, since the chunker is not
     # a common source of failure for the indexing pipeline
     chunks: list[DocAwareChunk] = chunker.chunk(ctx.indexable_docs)
+    chunking_time = time.time() - chunking_start_time
+    logger.info(f"Chunking completed in {chunking_time:.2f}s, generated {len(chunks)} chunks")
     llm_tokenizer: BaseTokenizer | None = None
 
     # contextual RAG
     if enable_contextual_rag:
+        logger.info("Starting contextual RAG processing")
+        contextual_rag_start_time = time.time()
         assert llm is not None, "must provide an LLM for contextual RAG"
         llm_tokenizer = get_tokenizer(
             model_name=llm.config.model_name,
@@ -778,8 +798,11 @@ def index_doc_batch(
             tokenizer=llm_tokenizer,
             chunk_token_limit=chunker.chunk_token_limit * 2,
         )
+        contextual_rag_time = time.time() - contextual_rag_start_time
+        logger.info(f"Contextual RAG processing completed in {contextual_rag_time:.2f}s")
 
     logger.debug("Starting embedding")
+    embedding_start_time = time.time()
     chunks_with_embeddings, embedding_failures = (
         embed_chunks_with_failure_handling(
             chunks=chunks,
@@ -790,6 +813,8 @@ def index_doc_batch(
         if chunks
         else ([], [])
     )
+    embedding_time = time.time() - embedding_start_time
+    logger.info(f"Embedding completed in {embedding_time:.2f}s, embedded {len(chunks_with_embeddings)} chunks, {len(embedding_failures)} failures")
 
     chunk_content_scores = (
         _get_aggregated_chunk_boost_factor(
@@ -929,6 +954,8 @@ def index_doc_batch(
         # A document will not be spread across different batches, so all the
         # documents with chunks in this set, are fully represented by the chunks
         # in this set
+        logger.info(f"Starting vector DB write for {len(access_aware_chunks)} chunks")
+        vector_db_write_start_time = time.time()
         (
             insertion_records,
             vector_db_write_failures,
@@ -942,6 +969,8 @@ def index_doc_batch(
                 large_chunks_enabled=chunker.enable_large_chunks,
             ),
         )
+        vector_db_write_time = time.time() - vector_db_write_start_time
+        logger.info(f"Vector DB write completed in {vector_db_write_time:.2f}s, {len(insertion_records)} successful, {len(vector_db_write_failures)} failures")
 
         all_returned_doc_ids = (
             {record.document_id for record in insertion_records}

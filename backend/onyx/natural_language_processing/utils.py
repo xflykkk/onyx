@@ -109,8 +109,9 @@ def _check_tokenizer_cache(
     if id_tuple not in _TOKENIZER_CACHE:
         tokenizer = None
 
-        if model_name:
-            tokenizer = _try_initialize_tokenizer(model_name, model_provider)
+        # TODO 暂时禁用tiktoken，因为tiktoken不支持部分模型，导致中文embedding失败
+        # if model_name:
+            # tokenizer = _try_initialize_tokenizer(model_name, model_provider)
 
         if not tokenizer:
             logger.info(

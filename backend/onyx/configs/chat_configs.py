@@ -56,7 +56,7 @@ TITLE_CONTENT_RATIO = max(
 
 # A list of languages passed to the LLM to rephase the query
 # For example "English,French,Spanish", be sure to use the "," separator
-MULTILINGUAL_QUERY_EXPANSION = os.environ.get("MULTILINGUAL_QUERY_EXPANSION") or "Chinese"
+MULTILINGUAL_QUERY_EXPANSION = os.environ.get("MULTILINGUAL_QUERY_EXPANSION") or "English"
 LANGUAGE_HINT = "\n" + (
     os.environ.get("LANGUAGE_HINT")
     # TODO 原始回复语言，后续需要改掉
